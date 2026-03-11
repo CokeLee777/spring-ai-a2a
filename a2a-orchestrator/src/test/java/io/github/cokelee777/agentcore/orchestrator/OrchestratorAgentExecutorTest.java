@@ -17,8 +17,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,11 +60,12 @@ class OrchestratorAgentExecutorTest {
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(anyString(), eq("session-abc"))).thenReturn("응답");
+		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
 
 		executor.execute(requestContext, emitter);
 
-		verify(chatOrchestrator).handle("텍스트", "session-abc");
+		verify(chatOrchestrator)
+			.handle(argThat(r -> "텍스트".equals(r.userMessage()) && "session-abc".equals(r.sessionId())));
 	}
 
 	@Test
@@ -75,22 +75,22 @@ class OrchestratorAgentExecutorTest {
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(any(), anyString())).thenReturn("응답");
+		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
 
 		executor.execute(requestContext, emitter);
 
-		verify(chatOrchestrator).handle(any(), anyString());
+		verify(chatOrchestrator).handle(any(ChatRequest.class));
 	}
 
 	@Test
 	void execute_withNoServletContext_fallsBackToUuid() throws Exception {
 		RequestContextHolder.resetRequestAttributes();
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(any(), anyString())).thenReturn("응답");
+		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
 
 		executor.execute(requestContext, emitter);
 
-		verify(chatOrchestrator).handle(any(), anyString());
+		verify(chatOrchestrator).handle(any(ChatRequest.class));
 	}
 
 	@Test
@@ -98,7 +98,7 @@ class OrchestratorAgentExecutorTest {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(any(), anyString())).thenReturn("응답");
+		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
 
 		executor.execute(requestContext, emitter);
 
@@ -114,7 +114,7 @@ class OrchestratorAgentExecutorTest {
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(any(), anyString())).thenThrow(new RuntimeException("LLM error"));
+		when(chatOrchestrator.handle(any(ChatRequest.class))).thenThrow(new RuntimeException("LLM error"));
 
 		executor.execute(requestContext, emitter);
 

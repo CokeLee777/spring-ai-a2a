@@ -53,8 +53,8 @@ public class OrchestratorAgentExecutor implements AgentExecutor {
 		log.debug("Orchestrator execute: sessionId={}, text={}", sessionId, text);
 
 		try {
-			String response = chatOrchestrator.handle(text, sessionId);
-			emitter.addArtifact(List.of(new TextPart(response)));
+			ChatResponse response = chatOrchestrator.handle(new ChatRequest(text, sessionId));
+			emitter.addArtifact(List.of(new TextPart(response.content())));
 			emitter.complete();
 		}
 		catch (Exception e) {

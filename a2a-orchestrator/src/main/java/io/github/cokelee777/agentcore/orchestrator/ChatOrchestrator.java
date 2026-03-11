@@ -3,6 +3,7 @@ package io.github.cokelee777.agentcore.orchestrator;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /**
  * Orchestrates user requests by invoking the configured {@link ChatClient} with
@@ -29,23 +30,24 @@ public class ChatOrchestrator {
 	}
 
 	/**
-	 * Sends {@code userMessage} to the LLM and returns the generated response.
-	 * @param userMessage the raw text from the caller
-	 * @param sessionId unique identifier used to key conversation memory; typically the
-	 * AgentCore Runtime session ID or a generated UUID
-	 * @return the LLM response text, or a fallback message if the call fails
+	 * Sends the user message in {@code request} to the LLM and returns the generated
+	 * response.
+	 * @param request the chat request containing the user message and session ID
+	 * @return a {@link ChatResponse} with the LLM reply, or a fallback message if the
+	 * call fails
 	 */
-	public String handle(String userMessage, String sessionId) {
+	public ChatResponse handle(ChatRequest request) {
+		Assert.notNull(request, "request must not be null");
 		try {
 			String content = chatClient.prompt()
-				.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
-				.user(userMessage)
+				.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.sessionId()))
+				.user(request.userMessage())
 				.call()
 				.content();
-			return content != null ? content : "응답을 생성하지 못했습니다.";
+			return new ChatResponse(content != null ? content : "응답을 생성하지 못했습니다.");
 		}
 		catch (Exception e) {
-			return "처리 중 오류가 발생했습니다: " + e.getMessage();
+			return new ChatResponse("처리 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 
