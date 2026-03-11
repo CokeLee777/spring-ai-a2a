@@ -1,60 +1,58 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.5.0"
-    id("io.spring.dependency-management") version "1.1.7"
-    id("io.spring.javaformat") version "0.0.47"
+    id("org.springframework.boot") version "3.5.0" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
+    id("io.spring.javaformat") version "0.0.47" apply false
 }
 
-group = "com.github.cokelee777"
-version = "0.0.1-SNAPSHOT"
-description = "amazon-bedrock-agentcore-spring-boot-samples"
+val springAiVersion by extra("1.1.2")
+val awsSdkVersion by extra("2.42.9")
+val a2aVersion by extra("1.0.0.Alpha3")
+val gsonVersion by extra("2.13.2")
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "org.springframework.boot")
+    apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "io.spring.javaformat")
+
+    group = "io.github.cokelee777"
+    version = "0.0.1-SNAPSHOT"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
-}
 
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
+    configurations {
+        compileOnly {
+            extendsFrom(configurations.annotationProcessor.get())
+        }
     }
-}
 
-repositories {
-    mavenCentral()
-}
-
-val springAiVersion = "1.1.2"
-val awsSdkVersion = "2.42.9"
-val a2aVersion = "0.3.2.Final"
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.ai:spring-ai-bom:$springAiVersion")
-        mavenBom("software.amazon.awssdk:bom:$awsSdkVersion")
+    repositories {
+        mavenCentral()
     }
-}
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+    val springAiVer = rootProject.extra["springAiVersion"] as String
+    val awsSdkVer = rootProject.extra["awsSdkVersion"] as String
 
-    // Spring AI
-    implementation("org.springframework.ai:spring-ai-client-chat")
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
+        imports {
+            mavenBom("org.springframework.ai:spring-ai-bom:$springAiVer")
+            mavenBom("software.amazon.awssdk:bom:$awsSdkVer")
+        }
+    }
 
-    // AWS Bedrock AgentCore Runtime
-    implementation("software.amazon.awssdk:bedrockagentcore")
+    dependencies {
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    }
 
-    // A2A SDK
-    implementation("io.github.a2asdk:a2a-java-sdk-client:$a2aVersion")
-
-    compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
+    tasks.named<Test>("test") {
+        useJUnitPlatform()
+    }
 }

@@ -1,0 +1,23 @@
+server:
+  port: 9000
+
+spring:
+  ai:
+    bedrock:
+      aws:
+        region: ${BEDROCK_REGION:ap-northeast-2}
+      converse:
+        chat:
+          options:
+            model: ${BEDROCK_MODEL_ID:amazon.nova-pro-v1:0}
+
+a2a:
+  order-agent-url: ${ORDER_AGENT_URL:http://localhost:8081}
+  delivery-agent-url: ${DELIVERY_AGENT_URL:http://localhost:8082}
+  payment-agent-url: ${PAYMENT_AGENT_URL:http://localhost:8083}
+  client:
+    timeout-seconds: ${A2A_CLIENT_TIMEOUT_SECONDS:15}
+
+chat:
+  memory:
+    max-messages: ${CHAT_MEMORY_MAX_MESSAGES:20}

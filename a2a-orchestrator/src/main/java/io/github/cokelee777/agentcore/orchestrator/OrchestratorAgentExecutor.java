@@ -1,0 +1,91 @@
+package io.github.cokelee777.agentcore.orchestrator;
+
+import io.a2a.server.agentexecution.AgentExecutor;
+import io.a2a.server.agentexecution.RequestContext;
+import io.a2a.server.tasks.AgentEmitter;
+import io.a2a.spec.A2AError;
+import io.a2a.spec.Message;
+import io.a2a.spec.TextPart;
+import io.github.cokelee777.agentcore.common.util.TextExtractor;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+/**
+ * A2A AgentExecutor implementation for the orchestrator.
+ *
+ * <p>
+ * Delegates to {@link ChatOrchestrator} which invokes an LLM with tool-calling to
+ * coordinate downstream A2A agents. The session ID is resolved from the
+ * {@code X-Amzn-Bedrock-AgentCore-Runtime-Session-Id} header injected by AgentCore
+ * Runtime; falls back to a new UUID when running locally.
+ * </p>
+ */
+@Slf4j
+@Component
+public class OrchestratorAgentExecutor implements AgentExecutor {
+
+	static final String SESSION_HEADER = "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id";
+
+	private final ChatOrchestrator chatOrchestrator;
+
+	/**
+	 * Create a new {@link OrchestratorAgentExecutor}.
+	 * @param chatOrchestrator the orchestrator delegating to the LLM
+	 */
+	public OrchestratorAgentExecutor(ChatOrchestrator chatOrchestrator) {
+		this.chatOrchestrator = chatOrchestrator;
+	}
+
+	@Override
+	public void execute(RequestContext context, AgentEmitter emitter) throws A2AError {
+		emitter.startWork();
+
+		Message message = Objects.requireNonNull(context.getMessage(), "message must not be null");
+		String text = TextExtractor.extractFromMessage(message);
+		String sessionId = resolveSessionId();
+		log.debug("Orchestrator execute: sessionId={}, text={}", sessionId, text);
+
+		try {
+			String response = chatOrchestrator.handle(text, sessionId);
+			emitter.addArtifact(List.of(new TextPart(response)));
+			emitter.complete();
+		}
+		catch (Exception e) {
+			log.error("Orchestrator execution error: {}", e.getMessage(), e);
+			emitter.fail();
+		}
+	}
+
+	@Override
+	public void cancel(RequestContext context, AgentEmitter emitter) throws A2AError {
+		emitter.cancel();
+	}
+
+	/**
+	 * Reads the AgentCore Runtime session header from the current HTTP request.
+	 *
+	 * <p>
+	 * Falls back to a random UUID when no servlet request is bound to the current thread
+	 * (e.g. local testing without AgentCore Runtime).
+	 * </p>
+	 */
+	private String resolveSessionId() {
+		try {
+			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+			HttpServletRequest request = attrs.getRequest();
+			String sessionId = request.getHeader(SESSION_HEADER);
+			return (sessionId != null && !sessionId.isBlank()) ? sessionId : UUID.randomUUID().toString();
+		}
+		catch (IllegalStateException e) {
+			return UUID.randomUUID().toString();
+		}
+	}
+
+}
