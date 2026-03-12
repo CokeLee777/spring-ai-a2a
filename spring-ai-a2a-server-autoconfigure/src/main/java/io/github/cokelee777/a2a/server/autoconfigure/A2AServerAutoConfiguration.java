@@ -14,12 +14,11 @@ import io.a2a.server.tasks.TaskStateProvider;
 import io.a2a.server.tasks.TaskStore;
 import io.a2a.spec.AgentCard;
 import io.a2a.spec.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.github.cokelee777.a2a.server.controller.AgentCardController;
 import io.github.cokelee777.a2a.server.controller.MessageController;
 import io.github.cokelee777.a2a.server.controller.TaskController;
 import io.github.cokelee777.a2a.server.executor.DefaultAgentExecutor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * classpath. Provides A2A controllers, agent card metadata, and task API support.
  *
  */
+@Slf4j
 @AutoConfiguration
 @ConditionalOnClass(ChatClient.class)
 @ConditionalOnProperty(prefix = A2AServerProperties.CONFIG_PREFIX, name = "enabled", havingValue = "true",
@@ -52,14 +52,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EnableConfigurationProperties(A2AServerProperties.class)
 public class A2AServerAutoConfiguration {
 
-	private static final Logger logger = LoggerFactory.getLogger(A2AServerAutoConfiguration.class);
-
 	/**
 	 * Log AgentCard at startup. Applications MUST provide AgentCard bean.
 	 */
 	@Autowired
 	public void logAgentCard(AgentCard agentCard) {
-		logger.info("Using AgentCard: {} (version: {})", agentCard.name(), agentCard.version());
+		log.info("Using AgentCard: {} (version: {})", agentCard.name(), agentCard.version());
 	}
 
 	@Bean
@@ -86,7 +84,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public TaskStore taskStore() {
-		logger.info("Auto-configuring InMemoryTaskStore for task management");
+		log.info("Auto-configuring InMemoryTaskStore for task management");
 		return new InMemoryTaskStore();
 	}
 
@@ -103,7 +101,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	public SpringA2AConfigProvider configProvider(Environment environment,
 			DefaultValuesConfigProvider defaultValuesConfigProvider) {
-		logger.info("Auto-configuring SpringA2AConfigProvider for configuration");
+		log.info("Auto-configuring SpringA2AConfigProvider for configuration");
 		return new SpringA2AConfigProvider(environment, defaultValuesConfigProvider);
 	}
 
@@ -113,7 +111,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public QueueManager queueManager(TaskStore taskStore) {
-		logger.info("Auto-configuring InMemoryQueueManager for event queue management");
+		log.info("Auto-configuring InMemoryQueueManager for event queue management");
 		return new InMemoryQueueManager((TaskStateProvider) taskStore);
 	}
 
@@ -123,7 +121,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public PushNotificationConfigStore pushNotificationConfigStore() {
-		logger.info("Auto-configuring InMemoryPushNotificationConfigStore");
+		log.info("Auto-configuring InMemoryPushNotificationConfigStore");
 		return new InMemoryPushNotificationConfigStore();
 	}
 
@@ -133,13 +131,8 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public PushNotificationSender pushNotificationSender() {
-		logger.info("Auto-configuring no-op PushNotificationSender (override to enable)");
-		return new PushNotificationSender() {
-			@Override
-			public void sendNotification(Task task) {
-				logger.debug("Push notification requested for task {} but sender is disabled", task.getId());
-			}
-		};
+		log.info("Auto-configuring no-op PushNotificationSender (override to enable)");
+		return task -> log.debug("Push notification requested for task {} but sender is disabled", task.getId());
 	}
 
 	/**
@@ -153,19 +146,19 @@ public class A2AServerAutoConfiguration {
 		int maxPoolSize = Integer.parseInt(configProvider.getValue("a2a.executor.max-pool-size"));
 		long keepAliveSeconds = Long.parseLong(configProvider.getValue("a2a.executor.keep-alive-seconds"));
 
-		logger.info("Creating A2A internal executor: corePoolSize={}, maxPoolSize={}, keepAliveSeconds={}",
-				corePoolSize, maxPoolSize, keepAliveSeconds);
+		log.info("Creating A2A internal executor: corePoolSize={}, maxPoolSize={}, keepAliveSeconds={}", corePoolSize,
+				maxPoolSize, keepAliveSeconds);
 
 		AtomicInteger threadCounter = new AtomicInteger(1);
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveSeconds,
-				TimeUnit.SECONDS, new LinkedBlockingQueue<>(), runnable -> {
-					Thread thread = new Thread(runnable);
-					thread.setName("a2a-agent-executor-" + threadCounter.getAndIncrement());
-					thread.setDaemon(false); // Non-daemon threads as per A2A spec
-					return thread;
-				});
+        // Non-daemon threads as per A2A spec
 
-		return executor;
+        return new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveSeconds,
+                TimeUnit.SECONDS, new LinkedBlockingQueue<>(), runnable -> {
+                    Thread thread = new Thread(runnable);
+                    thread.setName("a2a-agent-executor-" + threadCounter.getAndIncrement());
+                    thread.setDaemon(false); // Non-daemon threads as per A2A spec
+                    return thread;
+                });
 	}
 
 	/**
@@ -181,7 +174,7 @@ public class A2AServerAutoConfiguration {
 			PushNotificationConfigStore pushConfigStore, PushNotificationSender pushSender,
 			@Qualifier("a2aInternal") Executor executor) {
 
-		logger.info("Creating DefaultRequestHandler with A2A SDK components");
+		log.info("Creating DefaultRequestHandler with A2A SDK components");
 
 		return DefaultRequestHandler.create(agentExecutor, taskStore, queueManager, pushConfigStore, pushSender,
 				executor);

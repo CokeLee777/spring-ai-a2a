@@ -26,8 +26,7 @@ import io.a2a.spec.Task;
 import io.a2a.spec.TaskNotCancelableError;
 import io.a2a.spec.TaskState;
 import io.a2a.spec.TextPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 
 import java.util.List;
@@ -54,9 +53,8 @@ import java.util.stream.Collectors;
  * @author Christian Tzolov
  * @since 0.1.0
  */
+@Slf4j
 public class DefaultAgentExecutor implements AgentExecutor {
-
-	private static final Logger logger = LoggerFactory.getLogger(DefaultAgentExecutor.class);
 
 	private final ChatClient chatClient;
 
@@ -95,20 +93,20 @@ public class DefaultAgentExecutor implements AgentExecutor {
 			// Call user's method with clean string parameter
 			String response = this.chatClientExecutorHandler.execute(this.chatClient, context);
 
-			logger.debug("AI Response: {}", response);
+			log.debug("AI Response: {}", response);
 
 			updater.addArtifact(List.of(new TextPart(response)), null, null, null);
 			updater.complete();
 		}
 		catch (Exception e) {
-			logger.error("Error executing agent task", e);
+			log.error("Error executing agent task", e);
 			throw new JSONRPCError(-32603, "Agent execution failed: " + e.getMessage(), null);
 		}
 	}
 
 	@Override
 	public void cancel(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
-		logger.debug("Cancelling task: {}", context.getTaskId());
+		log.debug("Cancelling task: {}", context.getTaskId());
 
 		final Task task = context.getTask();
 

@@ -1,20 +1,4 @@
-/*
- * Copyright 2025-2026 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package io.github.cokelee777.a2a.server.autoconfigure;
+package io.github.cokelee777.a2a.server;
 
 import io.a2a.server.agentexecution.AgentExecutor;
 import io.a2a.spec.AgentCard;
@@ -29,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
@@ -65,11 +51,19 @@ class A2AClientServerIntegrationTests {
 	static class TestConfig {
 
 		/**
+		 * Provides a mock ChatModel bean for testing (no real LLM connection needed).
+		 */
+		@Bean
+		public ChatModel testChatModel() {
+			return mock(ChatModel.class);
+		}
+
+		/**
 		 * Provides a minimal ChatClient bean to trigger auto-configuration.
 		 */
 		@Bean
-		public ChatClient testChatClient(ChatModel chatModel) {
-			return ChatClient.builder(chatModel).defaultSystem("You are a test agent").build();
+		public ChatClient testChatClient(ChatModel testChatModel) {
+			return ChatClient.builder(testChatModel).defaultSystem("You are a test agent").build();
 		}
 
 		/**
@@ -89,9 +83,8 @@ class A2AClientServerIntegrationTests {
 		 */
 		@Bean
 		public AgentExecutor testAgentExecutor(ChatClient testChatClient) {
-			return new DefaultAgentExecutor(testChatClient, (chatClient, requestContext) -> {
-				return DefaultAgentExecutor.extractTextFromMessage(requestContext.getMessage());
-			}) {
+			return new DefaultAgentExecutor(testChatClient, (chatClient, requestContext) -> DefaultAgentExecutor
+				.extractTextFromMessage(requestContext.getMessage())) {
 			};
 		}
 

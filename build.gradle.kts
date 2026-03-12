@@ -7,7 +7,7 @@ plugins {
 
 val springAiVersion by extra("1.1.2")
 val awsSdkVersion by extra("2.42.9")
-val a2aVersion by extra("0.3.2.Final")
+val a2aVersion by extra("0.3.3.Final")
 val gsonVersion by extra("2.13.2")
 
 subprojects {
@@ -46,6 +46,12 @@ subprojects {
     }
 
     dependencies {
+        implementation("io.github.a2asdk:a2a-java-sdk-spec:$a2aVersion")
+        implementation("io.github.a2asdk:a2a-java-sdk-common:$a2aVersion")
+        implementation("io.github.a2asdk:a2a-java-sdk-server-common:$a2aVersion")
+        implementation("io.github.a2asdk:a2a-java-sdk-client:$a2aVersion")
+        implementation("io.github.a2asdk:a2a-java-sdk-transport-jsonrpc:$a2aVersion")
+
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
