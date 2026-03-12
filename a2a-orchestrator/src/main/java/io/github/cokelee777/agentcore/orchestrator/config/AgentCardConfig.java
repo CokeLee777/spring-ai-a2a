@@ -17,8 +17,8 @@ import java.util.List;
  *
  * <p>
  * The card's {@code url} and JSON-RPC interface URL are taken verbatim from
- * {@code a2a.orchestrator-url} with no normalization—configure the exact base URL
- * callers must use (including path or trailing slash if your deployment requires it).
+ * {@code a2a.orchestrator-url} with no normalization—configure the exact base URL callers
+ * must use (including path or trailing slash if your deployment requires it).
  * </p>
  */
 @Configuration
