@@ -1,4 +1,4 @@
-package io.github.cokelee777.a2a.server.autoconfigure;
+package io.github.cokelee777.a2a.orchestrator.controller;
 
 import org.springframework.util.Assert;
 
