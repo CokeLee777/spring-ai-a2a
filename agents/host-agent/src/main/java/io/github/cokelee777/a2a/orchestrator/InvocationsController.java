@@ -24,16 +24,30 @@ public class InvocationsController {
 	private final ChatClient chatClient;
 
 	/**
-	 * Processes a user message and returns the orchestrator's response.
-	 * @param userMessage the raw user message from AgentCore Runtime
-	 * @return the LLM-generated response text
+	 * Handles invocation requests from Amazon Bedrock AgentCore Runtime.
+	 *
+	 * <p>
+	 * This endpoint receives a prompt from the runtime, forwards it to the configured LLM
+	 * through {@code ChatClient}, and returns the generated response text back to the
+	 * runtime.
+	 * </p>
+	 * @param request the invocation request containing the user prompt
+	 * @return the generated response text from the LLM
 	 */
 	@PostMapping("/invocations")
-	public String invoke(@RequestBody String userMessage) {
-		log.info("Received: {}", userMessage);
-		String response = this.chatClient.prompt().user(userMessage).call().content();
+	public String invoke(@RequestBody InvocationRequest request) {
+		log.info("Received: {}", request.prompt());
+		String response = this.chatClient.prompt().user(request.prompt()).call().content();
 		log.info("Response: {}", response);
 		return response;
+	}
+
+	/**
+	 * Request payload used by AgentCore Runtime when invoking the agent.
+	 *
+	 * @param prompt the user prompt that should be processed by the agent
+	 */
+	public record InvocationRequest(String prompt) {
 	}
 
 }
