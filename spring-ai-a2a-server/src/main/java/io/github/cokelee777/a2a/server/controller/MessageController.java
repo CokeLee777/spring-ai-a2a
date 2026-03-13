@@ -32,15 +32,13 @@ public class MessageController {
 	 */
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public SendMessageResponse sendMessage(@RequestBody SendMessageRequest request) throws JSONRPCError {
-
 		MessageSendParams params = request.getParams();
 		log.debug("Received sendMessage request - id: {}", request.getId());
 
 		try {
 			// Create server call context
 			// TODO: Add support for auth context, state, and extensions
-			ServerCallContext context = new ServerCallContext(null, // auth context (not
-																	// used yet)
+			ServerCallContext context = new ServerCallContext(null, // auth context (not used yet)
 					Map.of(), // state
 					Set.of() // extensions
 			);

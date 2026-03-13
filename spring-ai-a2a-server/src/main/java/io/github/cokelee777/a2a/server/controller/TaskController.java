@@ -34,7 +34,7 @@ public class TaskController {
 	 */
 	@GetMapping(path = "/{taskId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Task getTask(@PathVariable String taskId) throws JSONRPCError {
-		log.info("Getting task: {}", taskId);
+		log.debug("Getting task: {}", taskId);
 
 		try {
 			ServerCallContext context = new ServerCallContext(null, Map.of(), Set.of());
@@ -59,7 +59,7 @@ public class TaskController {
 	 */
 	@PostMapping(path = "/{taskId}/cancel", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Task cancelTask(@PathVariable String taskId) throws JSONRPCError {
-		log.info("Cancelling task: {}", taskId);
+		log.debug("Cancelling task: {}", taskId);
 
 		try {
 			ServerCallContext context = new ServerCallContext(null, Map.of(), Set.of());

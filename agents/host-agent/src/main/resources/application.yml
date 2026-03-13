@@ -11,10 +11,6 @@ spring:
           options:
             model: ${BEDROCK_MODEL_ID:amazon.nova-pro-v1:0}
 
-a2a:
-  client:
-    timeout-seconds: ${A2A_CLIENT_TIMEOUT_SECONDS:15}
-
 remote:
   agents:
     order-agent:
