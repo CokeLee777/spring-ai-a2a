@@ -100,6 +100,6 @@ docker buildx build --platform linux/arm64 \
 - **Java 21**, **Spring Boot 3.5.0**
 - **Spring AI 1.1.2** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse
 - **Amazon Bedrock** (Amazon Nova Pro) — LLM 추론
-- **A2A Java SDK 0.3.2.Final** (`io.github.a2asdk`) — Agent-to-Agent 프로토콜
+- **A2A Java SDK 0.3.3.Final** (`io.github.a2asdk`) — Agent-to-Agent 프로토콜
 - **AWS SDK 2.42.x** — Bedrock AgentCore 등
 - **Amazon Bedrock AgentCore Runtime** — 세션 관리, 에이전트 엔트리포인트
