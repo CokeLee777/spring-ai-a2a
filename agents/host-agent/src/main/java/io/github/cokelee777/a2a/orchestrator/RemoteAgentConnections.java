@@ -7,8 +7,8 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -58,29 +58,26 @@ public class RemoteAgentConnections {
 	}
 
 	/**
-	 * Returns a formatted description of all available downstream agents for inclusion in
-	 * the LLM system prompt.
-	 *
-	 * <p>
-	 * Each agent's name and description are fetched from its
-	 * {@link io.a2a.spec.AgentCard} and formatted as a bulleted list. Agent cards are
-	 * resolved lazily and cached by {@link A2aTransport}.
-	 * </p>
-	 * @return multi-line string listing each agent name and its description
+	 * Returns a JSON-formatted description of all available agents for the system prompt.
 	 */
 	public String getAgentDescriptions() {
-		return this.transports.entrySet()
+		return this.transports.values()
 			.stream()
-			.map(e -> "- " + e.getKey() + ": " + e.getValue().getAgentCard().description())
+			.map(a2aTransport -> String.format("{\"name\": \"%s\", \"description\": \"%s\"}",
+					a2aTransport.getAgentCard().name(),
+					a2aTransport.getAgentCard().description() != null ? a2aTransport.getAgentCard().description()
+							: "No description"))
 			.collect(Collectors.joining("\n"));
 	}
 
 	/**
-	 * Returns the names of all available downstream agents.
-	 * @return set of agent names (e.g., {@code order-agent}, {@code delivery-agent})
+	 * Returns the list of available agent names.
 	 */
-	public Set<String> getAgentNames() {
-		return this.transports.keySet();
+	public List<String> getAgentNames() {
+		return this.transports.values()
+			.stream()
+			.map(a2aTransport -> a2aTransport.getAgentCard().name())
+			.collect(Collectors.toList());
 	}
 
 }
