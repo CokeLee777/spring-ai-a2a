@@ -18,7 +18,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -61,22 +60,7 @@ class OrchestratorAgentExecutorTest {
 	}
 
 	@Test
-	void execute_withSessionHeader_usesHeaderValue() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader(OrchestratorAgentExecutor.SESSION_HEADER, "session-abc");
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-
-		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
-		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
-
-		executor.execute(requestContext, eventQueue);
-
-		verify(chatOrchestrator)
-			.handle(argThat(r -> "텍스트".equals(r.userMessage()) && "session-abc".equals(r.sessionId())));
-	}
-
-	@Test
-	void execute_withBlankHeader_fallsBackToUuid() throws Exception {
+	void execute_withBlankHeader_fallsBackToUuid() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader(OrchestratorAgentExecutor.SESSION_HEADER, "   ");
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
@@ -90,7 +74,7 @@ class OrchestratorAgentExecutorTest {
 	}
 
 	@Test
-	void execute_withNoServletContext_fallsBackToUuid() throws Exception {
+	void execute_withNoServletContext_fallsBackToUuid() {
 		RequestContextHolder.resetRequestAttributes();
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
 		when(chatOrchestrator.handle(any(ChatRequest.class))).thenReturn(new ChatResponse("응답"));
@@ -101,7 +85,7 @@ class OrchestratorAgentExecutorTest {
 	}
 
 	@Test
-	void execute_success_callsAddArtifactAndComplete() throws Exception {
+	void execute_success_callsAddArtifactAndComplete() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 		when(requestContext.getMessage()).thenReturn(buildMessage("텍스트"));
@@ -116,7 +100,7 @@ class OrchestratorAgentExecutorTest {
 	}
 
 	@Test
-	void execute_chatOrchestratorThrows_callsFail() throws Exception {
+	void execute_chatOrchestratorThrows_callsFail() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
@@ -131,7 +115,7 @@ class OrchestratorAgentExecutorTest {
 	}
 
 	@Test
-	void cancel_callsEmitterCancel() throws Exception {
+	void cancel_callsEmitterCancel() {
 		executor.cancel(requestContext, eventQueue);
 
 		verify(mockUpdater).cancel();

@@ -8,16 +8,12 @@ import io.a2a.spec.JSONRPCError;
 import io.a2a.spec.Message;
 import io.a2a.spec.TextPart;
 import io.github.cokelee777.a2a.common.TextExtractor;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * A2A AgentExecutor implementation for the orchestrator.
@@ -45,11 +41,10 @@ public class OrchestratorAgentExecutor implements AgentExecutor {
 
 		Message message = Objects.requireNonNull(context.getMessage(), "message must not be null");
 		String text = TextExtractor.extractFromMessage(message);
-		String sessionId = resolveSessionId();
-		log.debug("Orchestrator execute: sessionId={}, text={}", sessionId, text);
+		log.debug("Orchestrator execute: text={}", text);
 
 		try {
-			ChatResponse response = chatOrchestrator.handle(new ChatRequest(text, sessionId));
+			ChatResponse response = chatOrchestrator.handle(new ChatRequest(text));
 			updater.addArtifact(List.of(new TextPart(response.content())));
 			updater.complete();
 		}
@@ -76,27 +71,6 @@ public class OrchestratorAgentExecutor implements AgentExecutor {
 	 */
 	protected TaskUpdater createTaskUpdater(RequestContext context, EventQueue eventQueue) {
 		return new TaskUpdater(context, eventQueue);
-	}
-
-	/**
-	 * Reads the AgentCore Runtime session header from the current HTTP request.
-	 *
-	 * <p>
-	 * Falls back to a random UUID when no servlet request is bound to the current thread
-	 * (e.g. local testing without AgentCore Runtime).
-	 * </p>
-	 * @return session ID from the header when present and non-blank; otherwise a new UUID
-	 */
-	private String resolveSessionId() {
-		try {
-			ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-			HttpServletRequest request = attrs.getRequest();
-			String sessionId = request.getHeader(SESSION_HEADER);
-			return (sessionId != null && !sessionId.isBlank()) ? sessionId : UUID.randomUUID().toString();
-		}
-		catch (IllegalStateException e) {
-			return UUID.randomUUID().toString();
-		}
 	}
 
 }

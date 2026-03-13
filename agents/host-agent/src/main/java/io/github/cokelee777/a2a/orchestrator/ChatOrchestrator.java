@@ -2,7 +2,6 @@ package io.github.cokelee777.a2a.orchestrator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -33,11 +32,7 @@ public class ChatOrchestrator {
 	public ChatResponse handle(ChatRequest request) {
 		Assert.notNull(request, "request must not be null");
 		try {
-			String content = chatClient.prompt()
-				.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.sessionId()))
-				.user(request.userMessage())
-				.call()
-				.content();
+			String content = chatClient.prompt().user(request.userMessage()).call().content();
 			return new ChatResponse(content != null ? content : "응답을 생성하지 못했습니다.");
 		}
 		catch (Exception e) {
