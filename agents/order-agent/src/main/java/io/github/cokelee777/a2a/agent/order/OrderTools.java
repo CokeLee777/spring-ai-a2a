@@ -17,15 +17,14 @@ import org.springframework.stereotype.Component;
 public class OrderTools {
 
 	/**
-	 * Returns mock order history for a member.
+	 * Returns mock order history for the current member.
 	 * <p>
-	 * Note: mock returns a static list regardless of {@code memberId}.
+	 * Note: memberId is fixed (assumed from session context).
 	 * </p>
-	 * @param memberId the member whose orders to retrieve
 	 * @return formatted order list as plain text
 	 */
-	@Tool(description = "회원의 주문 내역 목록 조회")
-	public String getOrderList(@ToolParam(description = "조회할 회원 ID") String memberId) {
+	@Tool(description = "현재 회원의 주문 내역 목록 조회")
+	public String getOrderList() {
 		return """
 				[주문 내역]
 				- ORD-1001 | 상품: 노트북 | 금액: 1,500,000원 | 상태: 배송완료 | 주문일: 2026-03-01

@@ -10,7 +10,7 @@ class OrderToolsTest {
 
 	@Test
 	void getOrderList_returnsAllOrders() {
-		String result = tools.getOrderList("any-member");
+		String result = tools.getOrderList();
 		assertThat(result).contains("ORD-1001").contains("ORD-1002").contains("ORD-1003");
 	}
 
