@@ -1,4 +1,4 @@
-# Amazon Bedrock AgentCore Spring Boot Samples
+# Amazon Bedrock AgentCore Spring AI A2A Samples
 
 Amazon Bedrock AgentCore Runtime과 Spring AI를 활용한 A2A(Agent-to-Agent) 프로토콜 기반 멀티 에이전트 오케스트레이션 샘플 프로젝트입니다.
 
