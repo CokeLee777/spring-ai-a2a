@@ -9,13 +9,13 @@ spring:
       converse:
         chat:
           options:
-            model: ${BEDROCK_MODEL_ID:arn:aws:bedrock:ap-northeast-2:<ID>:inference-profile/apac.amazon.nova-lite-v1:0}
+            model: ${BEDROCK_MODEL_ID:arn:aws:bedrock:ap-northeast-2:<ACCOUNT_ID>:inference-profile/apac.amazon.nova-lite-v1:0}
 
 remote:
   agents:
     order-agent:
-      url: ${ORDER_AGENT_URL:http://localhost:9000}
+      url: ${ORDER_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/order-agent}
     delivery-agent:
-      url: ${DELIVERY_AGENT_URL:http://localhost:9000}
+      url: ${DELIVERY_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/delivery-agent}
     payment-agent:
-      url: ${PAYMENT_AGENT_URL:http://localhost:9000}
+      url: ${PAYMENT_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/payment-agent}

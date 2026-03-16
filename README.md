@@ -66,16 +66,27 @@ Agent       Agent     Agent
 
 ### 로컬 (Gradle)
 
+로컬에서는 에이전트마다 다른 포트를 사용합니다. `local` 프로파일을 활성화하면 `application-local.yml`의 포트/URL 설정이 적용됩니다.
+
+| 에이전트 | 로컬 포트 | AgentCore 포트 |
+|---------|---------|--------------|
+| host-agent | 8080 | 8080 |
+| order-agent | 9001 | 9000 |
+| delivery-agent | 9002 | 9000 |
+| payment-agent | 9003 | 9000 |
+
 ```bash
 # 전체 빌드
 ./gradlew build
 
-# 각 에이전트 실행 (별도 터미널)
-./gradlew :agents:order-agent:bootRun
-./gradlew :agents:delivery-agent:bootRun
-./gradlew :agents:payment-agent:bootRun
-./gradlew :agents:host-agent:bootRun
+# 각 에이전트 실행 (별도 터미널, local 프로파일 활성화)
+SPRING_PROFILES_ACTIVE=local ./gradlew :agents:order-agent:bootRun
+SPRING_PROFILES_ACTIVE=local ./gradlew :agents:delivery-agent:bootRun
+SPRING_PROFILES_ACTIVE=local ./gradlew :agents:payment-agent:bootRun
+SPRING_PROFILES_ACTIVE=local ./gradlew :agents:host-agent:bootRun
 ```
+
+> **IntelliJ 사용자**: Spring Boot 실행 설정의 **Active Profiles** 항목에 `local`을 입력하면 동일하게 적용됩니다.
 
 ### Docker
 

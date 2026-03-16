@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: 9002
+
+a2a:
+  agent-url: http://localhost:9002
