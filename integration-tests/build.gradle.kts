@@ -9,6 +9,10 @@ dependencies {
     testImplementation("org.springframework.ai:spring-ai-client-chat")
 }
 
+tasks.named<Test>("test") {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
+
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     enabled = false
 }

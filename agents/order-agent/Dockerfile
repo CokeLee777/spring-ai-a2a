@@ -11,7 +11,7 @@
 #   AGENT_PORT
 
 # ---------- Build stage ----------
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM eclipse-temurin:25-jdk-jammy AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN chmod +x gradlew \
 	&& cp agents/order-agent/build/libs/order-agent-*-SNAPSHOT.jar /app/app.jar
 
 # ---------- Runtime stage ----------
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
 

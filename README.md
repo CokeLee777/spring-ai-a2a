@@ -45,7 +45,7 @@ Agent       Agent     Agent
 
 ## 전제 조건
 
-- Java 21
+- Java 25
 - AWS 자격증명 (Bedrock 접근 권한 필요)
 - Amazon Nova Pro 모델 접근 활성화 (`ap-northeast-2` 기본값)
 
@@ -108,7 +108,7 @@ docker buildx build --platform linux/arm64 \
 
 ## 주요 기술 스택
 
-- **Java 21**, **Spring Boot 3.5.0**
+- **Java 25**, **Spring Boot 3.5.0**
 - **Spring AI 1.1.2** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse
 - **Amazon Bedrock** (Amazon Nova Pro) — LLM 추론
 - **A2A Java SDK 0.3.3.Final** (`io.github.a2asdk`) — Agent-to-Agent 프로토콜
