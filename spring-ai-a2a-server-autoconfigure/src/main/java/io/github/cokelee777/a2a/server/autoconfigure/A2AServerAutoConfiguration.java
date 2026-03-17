@@ -59,21 +59,43 @@ public class A2AServerAutoConfiguration {
 		log.info("Using AgentCard: {} (version: {})", agentCard.name(), agentCard.version());
 	}
 
+	/**
+	 * Logs that a bean is being auto-configured. Use at the start of each {@code @Bean}
+	 * method that registers a default implementation.
+	 * @param component short name of the component (e.g. "InMemoryTaskStore")
+	 * @param purpose one-line purpose (e.g. "task management")
+	 */
+	private static void logAutoConfig(String component, String purpose) {
+		log.info("Auto-configuring {} for {}", component, purpose);
+	}
+
+	/**
+	 * REST controller for agent card metadata (/.well-known/agent-card.json).
+	 */
 	@Bean
 	@ConditionalOnMissingBean
-	AgentCardController agentCardController(AgentCard agentCard) {
+	public AgentCardController agentCardController(AgentCard agentCard) {
+		logAutoConfig("AgentCardController", "agent card endpoint");
 		return new AgentCardController(agentCard);
 	}
 
+	/**
+	 * REST controller for A2A message handling.
+	 */
 	@Bean
 	@ConditionalOnMissingBean
-	MessageController messageController(RequestHandler requestHandler) {
+	public MessageController messageController(RequestHandler requestHandler) {
+		logAutoConfig("MessageController", "A2A message handling");
 		return new MessageController(requestHandler);
 	}
 
+	/**
+	 * REST controller for A2A task API.
+	 */
 	@Bean
 	@ConditionalOnMissingBean
-	TaskController taskController(RequestHandler requestHandler) {
+	public TaskController taskController(RequestHandler requestHandler) {
+		logAutoConfig("TaskController", "A2A task API");
 		return new TaskController(requestHandler);
 	}
 
@@ -83,12 +105,17 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public TaskStore taskStore() {
-		log.info("Auto-configuring InMemoryTaskStore for task management");
+		logAutoConfig("InMemoryTaskStore", "task management");
 		return new InMemoryTaskStore();
 	}
 
+	/**
+	 * Provide default values for A2A SDK configuration keys.
+	 */
 	@Bean
-	DefaultValuesConfigProvider defaultValuesConfigProvider() {
+	@ConditionalOnMissingBean
+	public DefaultValuesConfigProvider defaultValuesConfigProvider() {
+		logAutoConfig("DefaultValuesConfigProvider", "A2A default values");
 		return new DefaultValuesConfigProvider();
 	}
 
@@ -98,9 +125,10 @@ public class A2AServerAutoConfiguration {
 	 * DefaultValuesConfigProvider.
 	 */
 	@Bean
+	@ConditionalOnMissingBean
 	public SpringA2AConfigProvider configProvider(Environment environment,
 			DefaultValuesConfigProvider defaultValuesConfigProvider) {
-		log.info("Auto-configuring SpringA2AConfigProvider for configuration");
+		logAutoConfig("SpringA2AConfigProvider", "configuration");
 		return new SpringA2AConfigProvider(environment, defaultValuesConfigProvider);
 	}
 
@@ -110,7 +138,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public QueueManager queueManager(TaskStore taskStore) {
-		log.info("Auto-configuring InMemoryQueueManager for event queue management");
+		logAutoConfig("InMemoryQueueManager", "event queue management");
 		return new InMemoryQueueManager((TaskStateProvider) taskStore);
 	}
 
@@ -120,7 +148,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public PushNotificationConfigStore pushNotificationConfigStore() {
-		log.info("Auto-configuring InMemoryPushNotificationConfigStore");
+		logAutoConfig("InMemoryPushNotificationConfigStore", "push notification config store");
 		return new InMemoryPushNotificationConfigStore();
 	}
 
@@ -130,7 +158,7 @@ public class A2AServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public PushNotificationSender pushNotificationSender() {
-		log.info("Auto-configuring no-op PushNotificationSender (override to enable)");
+		logAutoConfig("PushNotificationSender", "no-op push notifications");
 		return task -> log.debug("Push notification requested for task {} but sender is disabled", task.getId());
 	}
 
@@ -138,14 +166,14 @@ public class A2AServerAutoConfiguration {
 	 * Provide internal executor for async agent operations.
 	 */
 	@Bean
-	@Qualifier("a2aInternal")
 	@ConditionalOnMissingBean(name = "a2aInternalExecutor")
 	public Executor a2aInternalExecutor(SpringA2AConfigProvider configProvider) {
+		logAutoConfig("A2A internal executor", "async agent operations");
 		int corePoolSize = Integer.parseInt(configProvider.getValue("a2a.executor.core-pool-size"));
 		int maxPoolSize = Integer.parseInt(configProvider.getValue("a2a.executor.max-pool-size"));
 		long keepAliveSeconds = Long.parseLong(configProvider.getValue("a2a.executor.keep-alive-seconds"));
 
-		log.info("Creating A2A internal executor: corePoolSize={}, maxPoolSize={}, keepAliveSeconds={}", corePoolSize,
+		log.debug("A2A internal executor: corePoolSize={}, maxPoolSize={}, keepAliveSeconds={}", corePoolSize,
 				maxPoolSize, keepAliveSeconds);
 
 		AtomicInteger threadCounter = new AtomicInteger(1);
@@ -171,10 +199,8 @@ public class A2AServerAutoConfiguration {
 	@ConditionalOnMissingBean
 	public RequestHandler requestHandler(AgentExecutor agentExecutor, TaskStore taskStore, QueueManager queueManager,
 			PushNotificationConfigStore pushConfigStore, PushNotificationSender pushSender,
-			@Qualifier("a2aInternal") Executor executor) {
-
-		log.info("Creating DefaultRequestHandler with A2A SDK components");
-
+			@Qualifier("a2aInternalExecutor") Executor executor) {
+		logAutoConfig("DefaultRequestHandler", "A2A request handling");
 		return DefaultRequestHandler.create(agentExecutor, taskStore, queueManager, pushConfigStore, pushSender,
 				executor);
 	}
