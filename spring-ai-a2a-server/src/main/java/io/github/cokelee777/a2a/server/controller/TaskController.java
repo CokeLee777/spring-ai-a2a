@@ -37,6 +37,7 @@ public class TaskController {
 		log.debug("Getting task: {}", taskId);
 
 		try {
+			// TODO: Add support for auth context, state, and extensions
 			ServerCallContext context = new ServerCallContext(null, Map.of(), Set.of());
 			TaskQueryParams params = new TaskQueryParams(taskId);
 
@@ -62,6 +63,7 @@ public class TaskController {
 		log.debug("Cancelling task: {}", taskId);
 
 		try {
+			// TODO: Add support for auth context, state, and extensions
 			ServerCallContext context = new ServerCallContext(null, Map.of(), Set.of());
 			TaskIdParams params = new TaskIdParams(taskId);
 

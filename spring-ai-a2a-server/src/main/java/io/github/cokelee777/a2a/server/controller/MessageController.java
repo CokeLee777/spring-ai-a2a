@@ -36,13 +36,8 @@ public class MessageController {
 		log.debug("Received sendMessage request - id: {}", request.getId());
 
 		try {
-			// Create server call context
 			// TODO: Add support for auth context, state, and extensions
-			ServerCallContext context = new ServerCallContext(null, // auth context (not
-																	// used yet)
-					Map.of(), // state
-					Set.of() // extensions
-			);
+			ServerCallContext context = new ServerCallContext(null, Map.of(), Set.of());
 
 			// Delegate to SDK's RequestHandler - handles all protocol logic
 			EventKind result = this.requestHandler.onMessageSend(params, context);
