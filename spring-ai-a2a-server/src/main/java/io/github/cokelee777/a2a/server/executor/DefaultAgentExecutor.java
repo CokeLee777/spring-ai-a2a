@@ -47,9 +47,6 @@ import java.util.List;
  * simple String and returns a String response. All A2A protocol complexity and task
  * management is handled by this base class.
  *
- * @author Ilayaperumal Gopinathan
- * @author Christian Tzolov
- * @since 0.1.0
  */
 @Slf4j
 public class DefaultAgentExecutor implements AgentExecutor {
