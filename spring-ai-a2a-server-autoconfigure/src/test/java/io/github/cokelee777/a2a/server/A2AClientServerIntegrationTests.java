@@ -1,8 +1,8 @@
-package io.github.cokelee777.agent.host.server;
+package io.github.cokelee777.a2a.server;
 
 import io.a2a.server.agentexecution.AgentExecutor;
 import io.a2a.spec.AgentCard;
-import io.github.cokelee777.agent.host.server.executor.DefaultAgentExecutor;
+import io.github.cokelee777.a2a.server.executor.DefaultAgentExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;

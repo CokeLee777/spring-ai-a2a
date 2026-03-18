@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host.server.controller;
+package io.github.cokelee777.a2a.server.controller;
 
 import io.a2a.server.ServerCallContext;
 import io.a2a.server.requesthandlers.RequestHandler;

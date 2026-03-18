@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host.server.autoconfigure;
+package io.github.cokelee777.a2a.server.autoconfigure;
 
 import lombok.Getter;
 import lombok.Setter;

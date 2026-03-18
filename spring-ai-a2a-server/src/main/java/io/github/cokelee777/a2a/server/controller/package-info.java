@@ -5,6 +5,6 @@
  * REST controllers for AgentCard, Ping, SendMessage, and Task handling.
  */
 @NullMarked
-package io.github.cokelee777.agent.host.server.controller;
+package io.github.cokelee777.a2a.server.controller;
 
 import org.jspecify.annotations.NullMarked;

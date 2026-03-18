@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host.server.autoconfigure;
+package io.github.cokelee777.a2a.server.autoconfigure;
 
 import io.a2a.server.config.A2AConfigProvider;
 import io.a2a.server.config.DefaultValuesConfigProvider;

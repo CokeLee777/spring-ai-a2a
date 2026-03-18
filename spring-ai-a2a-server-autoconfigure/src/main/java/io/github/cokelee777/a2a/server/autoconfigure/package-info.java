@@ -6,6 +6,6 @@
  * Ping/AgentCard controllers when an {@code AgentCard} bean is present.
  */
 @NullMarked
-package io.github.cokelee777.agent.host.server.autoconfigure;
+package io.github.cokelee777.a2a.server.autoconfigure;
 
 import org.jspecify.annotations.NullMarked;

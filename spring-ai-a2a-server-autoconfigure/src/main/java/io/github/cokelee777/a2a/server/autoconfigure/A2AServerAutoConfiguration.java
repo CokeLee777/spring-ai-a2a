@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host.server.autoconfigure;
+package io.github.cokelee777.a2a.server.autoconfigure;
 
 import io.a2a.server.agentexecution.AgentExecutor;
 import io.a2a.server.config.DefaultValuesConfigProvider;
@@ -14,10 +14,10 @@ import io.a2a.server.tasks.PushNotificationSender;
 import io.a2a.server.tasks.TaskStateProvider;
 import io.a2a.server.tasks.TaskStore;
 import io.a2a.spec.AgentCard;
-import io.github.cokelee777.agent.host.server.controller.AgentCardController;
-import io.github.cokelee777.agent.host.server.controller.MessageController;
-import io.github.cokelee777.agent.host.server.controller.TaskController;
-import io.github.cokelee777.agent.host.server.executor.DefaultAgentExecutor;
+import io.github.cokelee777.a2a.server.controller.AgentCardController;
+import io.github.cokelee777.a2a.server.controller.MessageController;
+import io.github.cokelee777.a2a.server.controller.TaskController;
+import io.github.cokelee777.a2a.server.executor.DefaultAgentExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;

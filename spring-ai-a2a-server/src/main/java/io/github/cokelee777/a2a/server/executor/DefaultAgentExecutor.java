@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.cokelee777.agent.host.server.executor;
+package io.github.cokelee777.a2a.server.executor;
 
 import io.a2a.server.agentexecution.AgentExecutor;
 import io.a2a.server.agentexecution.RequestContext;

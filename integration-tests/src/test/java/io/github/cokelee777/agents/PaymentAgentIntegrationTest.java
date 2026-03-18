@@ -1,9 +1,9 @@
-package io.github.cokelee777.agent.host;
+package io.github.cokelee777.agents;
 
 import io.a2a.A2A;
 import io.a2a.spec.AgentCard;
 import io.a2a.spec.Message;
-import io.github.cokelee777.agent.order.OrderAgentApplication;
+import io.github.cokelee777.agent.payment.PaymentAgentApplication;
 import io.github.cokelee777.agent.common.A2ATransport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,22 +24,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
- * Integration tests for the Order Agent.
+ * Integration tests for the Payment Agent.
  *
  * <p>
- * Starts the full Order Agent Spring Boot application with a mocked {@link ChatModel},
+ * Starts the full Payment Agent Spring Boot application with a mocked {@link ChatModel},
  * then verifies A2A protocol compliance (AgentCard endpoint) and end-to-end transport via
  * {@link A2ATransport}.
  * </p>
  */
-@SpringBootTest(classes = OrderAgentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-		properties = { "server.port=19001", "a2a.agent-url=http://localhost:19001",
+@SpringBootTest(classes = PaymentAgentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+		properties = { "server.port=19003", "a2a.agent-url=http://localhost:19003",
 				"spring.autoconfigure.exclude=org.springframework.ai.model.bedrock.converse.autoconfigure.BedrockConverseProxyChatAutoConfiguration" })
-class OrderAgentIntegrationTest {
+class PaymentAgentIntegrationTest {
 
-	private static final String BASE_URL = "http://localhost:19001";
+	private static final String BASE_URL = "http://localhost:19003";
 
-	private static final String MOCK_RESPONSE = "ORD-1001: 노트북, 1,500,000원, 배송완료";
+	private static final String MOCK_RESPONSE = "ORD-1001: 결제완료, 1,500,000원, 신용카드";
 
 	@MockitoBean
 	ChatModel chatModel;
@@ -54,15 +54,14 @@ class OrderAgentIntegrationTest {
 	}
 
 	/**
-	 * Verifies AgentCard bean contains correct order agent metadata.
+	 * Verifies AgentCard bean contains correct payment agent metadata.
 	 */
 	@Test
 	void agentCard_hasCorrectMetadata() {
-		assertThat(agentCard.name()).isEqualTo("Order Agent");
+		assertThat(agentCard.name()).isEqualTo("Payment Agent");
 		assertThat(agentCard.description()).isNotBlank();
-		assertThat(agentCard.skills()).hasSize(2);
-		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("order_list"));
-		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("order_cancellability_check"));
+		assertThat(agentCard.skills()).hasSize(1);
+		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("payment_status"));
 	}
 
 	/**
@@ -77,8 +76,8 @@ class OrderAgentIntegrationTest {
 			.retrieve()
 			.body(String.class);
 
-		assertThat(json).contains("Order Agent");
-		assertThat(json).contains("order_list");
+		assertThat(json).contains("Payment Agent");
+		assertThat(json).contains("payment_status");
 	}
 
 	/**
@@ -87,7 +86,7 @@ class OrderAgentIntegrationTest {
 	 */
 	@Test
 	void send_returnsAgentResponse() {
-		Message message = A2A.toUserMessage("회원 user-1의 주문 목록 조회해줘");
+		Message message = A2A.toUserMessage("주문번호 ORD-1001 결제 상태 조회해줘");
 
 		String result = A2ATransport.send(agentCard, message);
 

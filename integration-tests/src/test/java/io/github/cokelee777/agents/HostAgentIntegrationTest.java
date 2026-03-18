@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host;
+package io.github.cokelee777.agents;
 
 import io.github.cokelee777.agent.host.HostAgentApplication;
 import io.github.cokelee777.agent.host.RemoteAgentConnections;
