@@ -2,7 +2,9 @@ package io.github.cokelee777.a2a.server.autoconfigure;
 
 import io.a2a.server.config.A2AConfigProvider;
 import io.a2a.server.config.DefaultValuesConfigProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 import java.util.Optional;
 
@@ -15,32 +17,30 @@ import java.util.Optional;
  * properties.
  *
  */
+@RequiredArgsConstructor
 public class SpringA2AConfigProvider implements A2AConfigProvider {
 
 	private final Environment env;
 
-	private final DefaultValuesConfigProvider defaultValues;
-
-	SpringA2AConfigProvider(Environment env, DefaultValuesConfigProvider defaultValues) {
-		this.env = env;
-		this.defaultValues = defaultValues;
-	}
+	private final DefaultValuesConfigProvider defaultValuesConfigProvider;
 
 	@Override
 	public String getValue(String name) {
-		if (this.env.containsProperty(name)) {
-			return this.env.getProperty(name);
+		Assert.hasText(name, "name must not be null");
+		if (env.containsProperty(name)) {
+			return env.getRequiredProperty(name);
 		}
 		// Fallback to defaults
-		return this.defaultValues.getValue(name);
+		return defaultValuesConfigProvider.getValue(name);
 	}
 
 	@Override
 	public Optional<String> getOptionalValue(String name) {
-		if (this.env.containsProperty(name)) {
-			return Optional.of(this.env.getProperty(name));
+		Assert.hasText(name, "name must not be null");
+		if (env.containsProperty(name)) {
+			return Optional.of(env.getRequiredProperty(name));
 		}
-		return this.defaultValues.getOptionalValue(name);
+		return defaultValuesConfigProvider.getOptionalValue(name);
 	}
 
 }

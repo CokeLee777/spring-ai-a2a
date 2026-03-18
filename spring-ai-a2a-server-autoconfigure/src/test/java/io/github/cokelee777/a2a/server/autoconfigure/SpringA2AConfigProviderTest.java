@@ -28,50 +28,50 @@ class SpringA2AConfigProviderTest {
 
 	@BeforeEach
 	void setUp() {
-		this.environment = new MockEnvironment();
-		this.provider = new SpringA2AConfigProvider(this.environment, this.defaultValues);
+		environment = new MockEnvironment();
+		provider = new SpringA2AConfigProvider(environment, defaultValues);
 	}
 
 	@Test
 	void getValueReturnsFromEnvironmentWhenPresent() {
-		this.environment.setProperty("a2a.blocking.agent.timeout.seconds", "60");
+		environment.setProperty("a2a.blocking.agent.timeout.seconds", "60");
 
-		assertThat(this.provider.getValue("a2a.blocking.agent.timeout.seconds")).isEqualTo("60");
+		assertThat(provider.getValue("a2a.blocking.agent.timeout.seconds")).isEqualTo("60");
 	}
 
 	@Test
 	void getValueFallsBackToDefaultWhenNotInEnvironment() {
-		when(this.defaultValues.getValue("a2a.blocking.agent.timeout.seconds")).thenReturn("30");
+		when(defaultValues.getValue("a2a.blocking.agent.timeout.seconds")).thenReturn("30");
 
-		assertThat(this.provider.getValue("a2a.blocking.agent.timeout.seconds")).isEqualTo("30");
+		assertThat(provider.getValue("a2a.blocking.agent.timeout.seconds")).isEqualTo("30");
 	}
 
 	@Test
 	void getOptionalValueReturnsFromEnvironmentWhenPresent() {
-		this.environment.setProperty("custom.property", "custom-value");
+		environment.setProperty("custom.property", "custom-value");
 
-		assertThat(this.provider.getOptionalValue("custom.property")).hasValue("custom-value");
+		assertThat(provider.getOptionalValue("custom.property")).hasValue("custom-value");
 	}
 
 	@Test
 	void getOptionalValueFallsBackToDefaultWhenNotInEnvironment() {
-		when(this.defaultValues.getOptionalValue("a2a.executor.core-pool-size")).thenReturn(Optional.of("5"));
+		when(defaultValues.getOptionalValue("a2a.executor.core-pool-size")).thenReturn(Optional.of("5"));
 
-		assertThat(this.provider.getOptionalValue("a2a.executor.core-pool-size")).hasValue("5");
+		assertThat(provider.getOptionalValue("a2a.executor.core-pool-size")).hasValue("5");
 	}
 
 	@Test
 	void getOptionalValueReturnsEmptyForUnknownProperty() {
-		when(this.defaultValues.getOptionalValue("unknown.property")).thenReturn(Optional.empty());
+		when(defaultValues.getOptionalValue("unknown.property")).thenReturn(Optional.empty());
 
-		assertThat(this.provider.getOptionalValue("unknown.property")).isEmpty();
+		assertThat(provider.getOptionalValue("unknown.property")).isEmpty();
 	}
 
 	@Test
 	void environmentTakesPrecedenceOverDefaults() {
-		this.environment.setProperty("a2a.executor.max-pool-size", "100");
+		environment.setProperty("a2a.executor.max-pool-size", "100");
 
-		assertThat(this.provider.getValue("a2a.executor.max-pool-size")).isEqualTo("100");
+		assertThat(provider.getValue("a2a.executor.max-pool-size")).isEqualTo("100");
 	}
 
 }

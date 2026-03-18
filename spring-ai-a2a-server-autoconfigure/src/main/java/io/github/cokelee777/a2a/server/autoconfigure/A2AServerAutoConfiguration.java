@@ -1,6 +1,7 @@
 package io.github.cokelee777.a2a.server.autoconfigure;
 
 import io.a2a.server.agentexecution.AgentExecutor;
+import io.a2a.server.config.A2AConfigProvider;
 import io.a2a.server.config.DefaultValuesConfigProvider;
 import io.a2a.server.events.InMemoryQueueManager;
 import io.a2a.server.events.QueueManager;
@@ -112,29 +113,6 @@ public class A2AServerAutoConfiguration {
 	}
 
 	/**
-	 * Provide default values for A2A SDK configuration keys.
-	 */
-	@Bean
-	@ConditionalOnMissingBean
-	public DefaultValuesConfigProvider defaultValuesConfigProvider() {
-		logAutoConfig("DefaultValuesConfigProvider", "A2A default values");
-		return new DefaultValuesConfigProvider();
-	}
-
-	/**
-	 * Configuration provider for A2A settings. If a property is not found in the Spring
-	 * Environment, it falls back to default values provided by
-	 * DefaultValuesConfigProvider.
-	 */
-	@Bean
-	@ConditionalOnMissingBean
-	public SpringA2AConfigProvider configProvider(Environment environment,
-			DefaultValuesConfigProvider defaultValuesConfigProvider) {
-		logAutoConfig("SpringA2AConfigProvider", "configuration");
-		return new SpringA2AConfigProvider(environment, defaultValuesConfigProvider);
-	}
-
-	/**
 	 * Provide default QueueManager (InMemoryQueueManager).
 	 */
 	@Bean
@@ -168,15 +146,38 @@ public class A2AServerAutoConfiguration {
 	}
 
 	/**
+	 * Provide default values for A2A SDK configuration keys.
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public DefaultValuesConfigProvider defaultValuesConfigProvider() {
+		logAutoConfig("DefaultValuesConfigProvider", "A2A default values");
+		return new DefaultValuesConfigProvider();
+	}
+
+	/**
+	 * Configuration provider for A2A settings. If a property is not found in the Spring
+	 * Environment, it falls back to default values provided by
+	 * DefaultValuesConfigProvider.
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	public SpringA2AConfigProvider springA2AConfigProvider(Environment environment,
+			DefaultValuesConfigProvider defaultValuesConfigProvider) {
+		logAutoConfig("SpringA2AConfigProvider", "configuration");
+		return new SpringA2AConfigProvider(environment, defaultValuesConfigProvider);
+	}
+
+	/**
 	 * Provide internal executor for async agent operations.
 	 */
 	@Bean
 	@ConditionalOnMissingBean(name = "a2aInternalExecutor")
-	public Executor a2aInternalExecutor(SpringA2AConfigProvider configProvider) {
+	public Executor a2aInternalExecutor(SpringA2AConfigProvider springA2AConfigProvider) {
 		logAutoConfig("A2A internal executor", "async agent operations");
-		int corePoolSize = Integer.parseInt(configProvider.getValue("a2a.executor.core-pool-size"));
-		int maxPoolSize = Integer.parseInt(configProvider.getValue("a2a.executor.max-pool-size"));
-		long keepAliveSeconds = Long.parseLong(configProvider.getValue("a2a.executor.keep-alive-seconds"));
+		int corePoolSize = Integer.parseInt(springA2AConfigProvider.getValue("a2a.executor.core-pool-size"));
+		int maxPoolSize = Integer.parseInt(springA2AConfigProvider.getValue("a2a.executor.max-pool-size"));
+		long keepAliveSeconds = Long.parseLong(springA2AConfigProvider.getValue("a2a.executor.keep-alive-seconds"));
 
 		log.debug("A2A internal executor: corePoolSize={}, maxPoolSize={}, keepAliveSeconds={}", corePoolSize,
 				maxPoolSize, keepAliveSeconds);

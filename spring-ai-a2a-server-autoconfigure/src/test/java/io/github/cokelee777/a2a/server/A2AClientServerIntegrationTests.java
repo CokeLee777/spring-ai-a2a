@@ -40,7 +40,7 @@ class A2AClientServerIntegrationTests {
 	@SpringBootApplication
 	static class TestApplication {
 
-		public static void main(String[] args) {
+		static void main(String[] args) {
 			SpringApplication.run(TestApplication.class, args);
 		}
 
@@ -98,11 +98,11 @@ class A2AClientServerIntegrationTests {
 	 */
 	@Test
 	void testA2AServerStarted() {
-		assertThat(this.agentCard).isNotNull();
-		assertThat(this.agentCard.name()).isEqualTo("Spring AI A2A Agent");
-		assertThat(this.agentCard.description()).isEqualTo("A2A agent powered by Spring AI");
-		assertThat(this.agentCard.version()).isEqualTo("1.0.0");
-		assertThat(this.agentCard.protocolVersion()).isEqualTo("0.1.0");
+		assertThat(agentCard).isNotNull();
+		assertThat(agentCard.name()).isEqualTo("Spring AI A2A Agent");
+		assertThat(agentCard.description()).isEqualTo("A2A agent powered by Spring AI");
+		assertThat(agentCard.version()).isEqualTo("1.0.0");
+		assertThat(agentCard.protocolVersion()).isEqualTo("0.1.0");
 	}
 
 	/**
@@ -110,7 +110,7 @@ class A2AClientServerIntegrationTests {
 	 */
 	@Test
 	void testServerPort() {
-		assertThat(this.port).isEqualTo(58888);
+		assertThat(port).isEqualTo(58888);
 	}
 
 	/**
@@ -118,9 +118,9 @@ class A2AClientServerIntegrationTests {
 	 */
 	@Test
 	void testAgentCardCapabilities() {
-		assertThat(this.agentCard.capabilities()).isNotNull();
-		assertThat(this.agentCard.capabilities().streaming()).isFalse();
-		assertThat(this.agentCard.capabilities().pushNotifications()).isFalse();
+		assertThat(agentCard.capabilities()).isNotNull();
+		assertThat(agentCard.capabilities().streaming()).isFalse();
+		assertThat(agentCard.capabilities().pushNotifications()).isFalse();
 	}
 
 }
