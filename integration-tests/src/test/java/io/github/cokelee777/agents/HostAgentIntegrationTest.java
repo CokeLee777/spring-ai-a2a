@@ -13,6 +13,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(classes = HostAgentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
 		properties = { "server.port=18080", "spring.ai.a2a.server.enabled=false",
-				"remote.agents.order-agent.url=http://localhost:19901",
+				"aws.bedrock.agentcore.memory.mode=none", "remote.agents.order-agent.url=http://localhost:19901",
 				"remote.agents.delivery-agent.url=http://localhost:19902",
 				"remote.agents.payment-agent.url=http://localhost:19903",
 				"spring.autoconfigure.exclude=org.springframework.ai.model.bedrock.converse.autoconfigure.BedrockConverseProxyChatAutoConfiguration" })
@@ -59,19 +60,24 @@ class HostAgentIntegrationTest {
 	}
 
 	/**
-	 * Verifies {@code POST /invocations} returns the LLM response as a plain string.
+	 * Verifies {@code POST /invocations} returns JSON with assistant content and session
+	 * identifiers.
 	 */
 	@Test
 	void invoke_returnsLlmResponse() {
-		String response = RestClient.create()
+		Map<String, String> response = RestClient.create()
 			.post()
 			.uri(BASE_URL + "/invocations")
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(Map.of("prompt", "주문 목록 조회해줘"))
 			.retrieve()
-			.body(String.class);
+			.body(new ParameterizedTypeReference<Map<String, String>>() {
+			});
 
-		assertThat(response).isEqualTo(MOCK_RESPONSE);
+		assertThat(response).containsEntry("content", MOCK_RESPONSE);
+		assertThat(response).containsKeys("sessionId", "actorId");
+		assertThat(response.get("sessionId")).isNotBlank();
+		assertThat(response.get("actorId")).isNotBlank();
 	}
 
 	/**

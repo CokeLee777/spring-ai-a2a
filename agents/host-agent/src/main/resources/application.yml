@@ -19,3 +19,13 @@ remote:
       url: ${DELIVERY_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/delivery-agent}
     payment-agent:
       url: ${PAYMENT_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/payment-agent}
+
+aws:
+  bedrock:
+    agentcore:
+      memory:
+        memory-id: ${BEDROCK_MEMORY_ID:placeholder-memory-id}
+        mode: ${BEDROCK_MEMORY_MODE:both}
+        short-term-max-turns: 10
+        strategy-id: ${BEDROCK_MEMORY_STRATEGY_ID:placeholder-strategy-id}
+        long-term-max-results: 4
