@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Base class for A2A AgentExecutors using Spring AI ChatClient.
@@ -62,6 +63,9 @@ public class DefaultAgentExecutor implements AgentExecutor {
 
 	@Override
 	public void execute(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
+		Thread current = Thread.currentThread();
+		log.debug("Executing agent on thread {} (virtual={})", current.getName(), current.isVirtual());
+
 		TaskUpdater updater = new TaskUpdater(context, eventQueue);
 
 		try {
@@ -74,6 +78,8 @@ public class DefaultAgentExecutor implements AgentExecutor {
 			String response = this.chatClientExecutorHandler.execute(this.chatClient, context);
 
 			log.debug("AI Response: {}", response);
+
+			response = Objects.requireNonNullElse(response, "");
 
 			updater.addArtifact(List.of(new TextPart(response)), null, null, null);
 			updater.complete();

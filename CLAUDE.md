@@ -34,6 +34,9 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 ├── spring-ai-a2a-server/                    # A2A 서버 구현체 (JSON-RPC, AgentCard, Ping 컨트롤러)
 ├── spring-ai-a2a-server-autoconfigure/      # A2A 서버·공통 자동 구성
 │   ├── A2AServerAutoConfiguration           # AgentExecutor 빈 있을 때만 활성화
+│   │   ├── a2aTaskExecutor                  # Virtual thread 기반 Executor (에이전트 비동기 실행)
+│   │   ├── DefaultValuesConfigProvider      # A2A SDK 기본값 (a2a.blocking.* 등)
+│   │   └── SpringA2AConfigProvider          # Environment + 기본값 폴백 (커스텀 시 DEBUG 로그)
 │   └── A2ACommonAutoConfiguration           # AgentCard 빈 있을 때만 활성화
 ├── agents/
 │   ├── host-agent/   (port: 8080)           # AgentCore Runtime 진입점 · 오케스트레이터
@@ -90,6 +93,21 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 - `ChatClient.call()` 은 동기 블로킹 agentic loop다. 스트리밍은 `.stream()` 을 사용해야 한다.
 - 툴 실행은 기본적으로 **순차 실행**이다. LLM이 한 번의 응답에 여러 툴을 요청해도 Java 측에서 순차 처리한다.
 - 단일 필드 래퍼 record 대신 `@ToolParam`이 달린 단일 파라미터를 사용한다.
+
+### a2aTaskExecutor (Virtual thread)
+
+- A2A 에이전트 실행은 **virtual thread** 기반 `a2aTaskExecutor` 빈에서 수행된다.
+- `Thread.ofVirtual().name("a2a-task-", 1).factory()` + `newThreadPerTaskExecutor` 사용.
+- `DefaultRequestHandler`에 이 Executor가 주입되므로, SDK의 `a2a.executor.*`(스레드 풀 설정) 기본값은 **사용되지 않는다.** (Executor를 우리가 제공하기 때문.)
+- `DefaultValuesConfigProvider` / `SpringA2AConfigProvider`는 **스레드가 아니라 A2A 설정값**용이다. `a2a.blocking.agent.timeout.seconds`, `a2a.blocking.consumption.timeout.seconds` 등은 SDK가 사용하며, 지우면 안 된다.
+- Virtual thread 사용 검증: `A2AVirtualThreadIntegrationTest` 실행 또는 `DefaultAgentExecutor` 로거를 DEBUG로 올려 `Executing agent on thread a2a-task-N (virtual=true)` 로그 확인.
+
+### A2A 서버 설정 (blocking 타임아웃)
+
+- `a2a.blocking.agent.timeout.seconds` — 에이전트 실행(LLM·툴·다운스트림 호출) 완료 대기 최대 시간(초). 기본 30.
+- `a2a.blocking.consumption.timeout.seconds` — 이벤트 소비/영속화(TaskStore 반영) 완료 대기 최대 시간(초). 기본 5.
+- autoconfigure의 `src/main/resources/application.yml`에 기본값이 있으며, 각 에이전트 모듈의 `application.yml`에서 재정의하면 **오버라이드**된다 (Spring Boot: 메인 앱 설정이 라이브러리보다 우선).
+- 커스텀 값을 쓰면 `SpringA2AConfigProvider`에서 INFO 로그로 `Using custom A2A config: key=value` 또는 `Using custom A2A optional config: key=value` 출력.
 
 ### auto-configure 활성화 조건
 

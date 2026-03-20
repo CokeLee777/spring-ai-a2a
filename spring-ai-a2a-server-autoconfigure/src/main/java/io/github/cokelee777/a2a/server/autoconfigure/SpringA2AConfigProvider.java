@@ -3,6 +3,7 @@ package io.github.cokelee777.a2a.server.autoconfigure;
 import io.a2a.server.config.A2AConfigProvider;
 import io.a2a.server.config.DefaultValuesConfigProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
  * properties.
  *
  */
+@Slf4j
 @RequiredArgsConstructor
 public class SpringA2AConfigProvider implements A2AConfigProvider {
 
@@ -28,7 +30,9 @@ public class SpringA2AConfigProvider implements A2AConfigProvider {
 	public String getValue(String name) {
 		Assert.hasText(name, "name must not be null");
 		if (env.containsProperty(name)) {
-			return env.getRequiredProperty(name);
+			String value = env.getRequiredProperty(name);
+			log.info("Using custom A2A config: {}={}", name, value);
+			return value;
 		}
 		// Fallback to defaults
 		return defaultValuesConfigProvider.getValue(name);
@@ -38,7 +42,9 @@ public class SpringA2AConfigProvider implements A2AConfigProvider {
 	public Optional<String> getOptionalValue(String name) {
 		Assert.hasText(name, "name must not be null");
 		if (env.containsProperty(name)) {
-			return Optional.of(env.getRequiredProperty(name));
+			String value = env.getRequiredProperty(name);
+			log.info("Using custom A2A optional config: {}={}", name, value);
+			return Optional.of(value);
 		}
 		return defaultValuesConfigProvider.getOptionalValue(name);
 	}
