@@ -63,6 +63,9 @@ public class DefaultAgentExecutor implements AgentExecutor {
 
 	@Override
 	public void execute(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
+		Thread current = Thread.currentThread();
+		log.debug("Executing agent on thread {} (virtual={})", current.getName(), current.isVirtual());
+
 		TaskUpdater updater = new TaskUpdater(context, eventQueue);
 
 		try {

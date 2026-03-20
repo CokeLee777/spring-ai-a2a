@@ -62,6 +62,13 @@ Agent       Agent     Agent
 | `AGENT_URL` | agent별 기본값             | 각 에이전트의 공개 베이스 URL (AgentCard.url) |
 | `AGENT_PORT` | agent별 기본값             | 각 에이전트 리슨 포트 |
 
+A2A 서버의 blocking 타임아웃은 `application.yml`에서 설정할 수 있으며, autoconfigure 기본값을 앱 설정으로 오버라이드할 수 있다.
+
+| 설정 키 (application.yml) | 기본값 | 설명 |
+|---------------------------|--------|------|
+| `a2a.blocking.agent.timeout.seconds` | `30` | 에이전트 실행(LLM·툴 등) 완료 대기 최대 시간(초) |
+| `a2a.blocking.consumption.timeout.seconds` | `5` | 이벤트 소비/영속화 완료 대기 최대 시간(초) |
+
 ## 실행 방법
 
 ### 로컬 (Gradle)
@@ -114,3 +121,4 @@ docker buildx build --platform linux/arm64 \
 - **A2A Java SDK 0.3.3.Final** (`io.github.a2asdk`) — Agent-to-Agent 프로토콜
 - **AWS SDK 2.42.x** — **Bedrock** AgentCore 등
 - **Amazon Bedrock AgentCore Runtime** — 세션 관리, 에이전트 엔트리포인트
+- **Virtual thread** — A2A 에이전트 실행은 `a2aTaskExecutor`(virtual thread)에서 수행되며, 동시 요청이 많을 때 스레드 풀 제한 없이 확장된다.

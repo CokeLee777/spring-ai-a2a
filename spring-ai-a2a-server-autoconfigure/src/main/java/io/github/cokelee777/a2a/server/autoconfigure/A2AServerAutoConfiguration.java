@@ -144,6 +144,16 @@ public class A2AServerAutoConfiguration {
 
 	/**
 	 * Provide default values for A2A SDK configuration keys.
+	 *
+	 * <p>
+	 * The SDK's defaults include both blocking timeouts ({@code a2a.blocking.*}) and
+	 * thread-pool settings ({@code a2a.executor.*}). When this auto-configuration
+	 * provides {@link #a2aTaskExecutor()}, the executor-related keys
+	 * ({@code a2a.executor.core-pool-size}, {@code max-pool-size}, etc.) are <strong>not
+	 * used</strong>—they apply only when the SDK creates its own executor (e.g.
+	 * AsyncExecutorProducer). Blocking timeouts and any other keys are still read by the
+	 * SDK via {@link #configProvider}. This bean must remain so that the SDK can resolve
+	 * all config keys.
 	 */
 	@Bean
 	@ConditionalOnMissingBean
@@ -156,6 +166,12 @@ public class A2AServerAutoConfiguration {
 	 * Configuration provider for A2A settings. If a property is not found in the Spring
 	 * Environment, it falls back to default values provided by
 	 * DefaultValuesConfigProvider.
+	 *
+	 * <p>
+	 * When {@link #a2aTaskExecutor()} is supplied, {@code a2a.executor.*} values from
+	 * this provider are unused for execution; they are still present so that the SDK can
+	 * resolve them if it reads config. Other keys (e.g. {@code a2a.blocking.*}) are used
+	 * by the SDK.
 	 */
 	@Bean
 	@ConditionalOnMissingBean

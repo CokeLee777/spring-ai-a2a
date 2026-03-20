@@ -1,0 +1,15 @@
+# Default A2A server settings. Applications can override these in their own application.yml
+# (later config source overrides earlier; the main application's config takes precedence).
+#
+# Blocking timeouts used by DefaultRequestHandler when handling A2A requests:
+# - agent.timeout: max time to wait for agent execution (LLM, tools, downstream agents).
+# - consumption.timeout: max time to wait for event consumption/persistence (TaskStore update)
+#   before returning the response to the client.
+a2a:
+  blocking:
+    agent:
+      timeout:
+        seconds: 30
+    consumption:
+      timeout:
+        seconds: 5
