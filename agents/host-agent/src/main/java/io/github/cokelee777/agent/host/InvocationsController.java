@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 /**
  * REST controller for AgentCore Runtime invocations.
  *
@@ -70,7 +72,7 @@ public class InvocationsController {
 		String systemPrompt = String.format(ROUTING_SYSTEM_PROMPT, connections.getAgentDescriptions());
 		String response = chatClient.prompt().system(systemPrompt).user(request.prompt()).call().content();
 		log.info("Response: {}", response);
-		return response != null ? response : "";
+		return Objects.requireNonNullElse(response, "");
 	}
 
 	/**
