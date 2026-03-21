@@ -1,6 +1,7 @@
 package io.github.cokelee777.agent.host.config;
 
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
+import io.github.cokelee777.agent.host.memory.MemoryMode;
 import io.github.cokelee777.agent.host.memory.NoOpLongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.AgentCoreEventToMessageConverter;
 import io.github.cokelee777.agent.host.memory.bedrock.BedrockConversationMemoryService;
@@ -29,6 +30,17 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 @ConditionalOnExpression("!'none'.equalsIgnoreCase('${aws.bedrock.agent-core.memory.mode}')")
 @EnableConfigurationProperties(BedrockMemoryProperties.class)
 public class BedrockMemoryConfiguration {
+
+	/**
+	 * Exposes the configured {@link MemoryMode} as a bean so that service-layer
+	 * components do not need to depend on the Bedrock-specific properties class.
+	 * @param properties the memory properties
+	 * @return the configured {@link MemoryMode}
+	 */
+	@Bean
+	public MemoryMode memoryMode(BedrockMemoryProperties properties) {
+		return properties.mode();
+	}
 
 	/**
 	 * Creates the {@link BedrockAgentCoreClient} using the configured AWS region.

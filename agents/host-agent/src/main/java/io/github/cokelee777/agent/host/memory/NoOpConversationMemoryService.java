@@ -16,16 +16,16 @@ import java.util.List;
 public class NoOpConversationMemoryService implements ConversationMemoryService {
 
 	@Override
-	public List<Message> loadHistory(String actorId, String sessionId) {
+	public List<Message> loadHistory(ConversationSession session) {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public void appendUserTurn(String actorId, String sessionId, String userText) {
+	public void appendUserTurn(ConversationSession session, String userText) {
 	}
 
 	@Override
-	public void appendAssistantTurn(String actorId, String sessionId, String assistantText) {
+	public void appendAssistantTurn(ConversationSession session, String assistantText) {
 	}
 
 }

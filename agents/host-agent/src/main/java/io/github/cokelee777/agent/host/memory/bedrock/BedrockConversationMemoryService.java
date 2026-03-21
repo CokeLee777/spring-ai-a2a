@@ -1,6 +1,7 @@
 package io.github.cokelee777.agent.host.memory.bedrock;
 
 import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ConversationSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.util.Assert;
@@ -59,12 +60,12 @@ public class BedrockConversationMemoryService implements ConversationMemoryServi
 	}
 
 	@Override
-	public List<Message> loadHistory(String actorId, String sessionId) {
+	public List<Message> loadHistory(ConversationSession session) {
 		try {
 			ListEventsRequest request = ListEventsRequest.builder()
 				.memoryId(properties.memoryId())
-				.actorId(actorId)
-				.sessionId(sessionId)
+				.actorId(session.actorId())
+				.sessionId(session.sessionId())
 				.includePayloads(true)
 				.maxResults(properties.shortTermMaxTurns() * 2)
 				.build();
@@ -73,36 +74,36 @@ public class BedrockConversationMemoryService implements ConversationMemoryServi
 			return converter.toMessages(events);
 		}
 		catch (Exception ex) {
-			log.error("Failed to load history for actor={} session={}", actorId, sessionId, ex);
+			log.error("Failed to load history for session={}", session, ex);
 			throw ex;
 		}
 	}
 
 	@Override
-	public void appendUserTurn(String actorId, String sessionId, String userText) {
-		createEvent(actorId, sessionId, userText, Role.USER);
+	public void appendUserTurn(ConversationSession session, String userText) {
+		createEvent(session, userText, Role.USER);
 	}
 
 	@Override
-	public void appendAssistantTurn(String actorId, String sessionId, String assistantText) {
-		createEvent(actorId, sessionId, assistantText, Role.ASSISTANT);
+	public void appendAssistantTurn(ConversationSession session, String assistantText) {
+		createEvent(session, assistantText, Role.ASSISTANT);
 	}
 
-	private void createEvent(String actorId, String sessionId, String text, Role role) {
+	private void createEvent(ConversationSession session, String text, Role role) {
 		try {
 			Conversational conversational = Conversational.builder().content(Content.fromText(text)).role(role).build();
 			PayloadType payload = PayloadType.fromConversational(conversational);
 			CreateEventRequest request = CreateEventRequest.builder()
 				.memoryId(properties.memoryId())
-				.actorId(actorId)
-				.sessionId(sessionId)
+				.actorId(session.actorId())
+				.sessionId(session.sessionId())
 				.eventTimestamp(Instant.now())
 				.payload(payload)
 				.build();
 			client.createEvent(request);
 		}
 		catch (Exception ex) {
-			log.error("Failed to append {} turn for actor={} session={}", role, actorId, sessionId, ex);
+			log.error("Failed to append {} turn for session={}", role, session, ex);
 			throw ex;
 		}
 	}

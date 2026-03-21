@@ -2,9 +2,9 @@ package io.github.cokelee777.agent.host.invocation;
 
 import io.github.cokelee777.agent.host.RemoteAgentConnections;
 import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ConversationSession;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
-import io.github.cokelee777.agent.host.memory.bedrock.BedrockMemoryProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Default implementation of {@link InvocationService}.
@@ -64,71 +63,61 @@ public class DefaultInvocationService implements InvocationService {
 			%s
 			""";
 
-	private final ConversationMemoryService conversationMemoryService;
-
-	private final LongTermMemoryService longTermMemoryService;
-
 	private final ChatClient chatClient;
 
 	private final RemoteAgentConnections connections;
 
-	private final BedrockMemoryProperties properties;
+	private final MemoryMode memoryMode;
+
+	private final ConversationMemoryService conversationMemoryService;
+
+	private final LongTermMemoryService longTermMemoryService;
 
 	@Override
 	public InvocationResponse invoke(InvocationRequest request) {
-		String actorId = Objects.requireNonNullElse(request.actorId(), UUID.randomUUID().toString());
-		String sessionId = Objects.requireNonNullElse(request.sessionId(), UUID.randomUUID().toString());
-		MemoryMode mode = properties.mode();
+		String prompt = request.prompt();
+		ConversationSession session = ConversationSession.builder()
+			.actorId(request.actorId())
+			.sessionId(request.sessionId())
+			.build();
 
-		// 1. Collect context (short-term history and/or long-term retrieval).
-		List<Message> history = loadHistory(actorId, sessionId, mode);
-		List<String> relevantMemories = retrieveRelevant(actorId, request.prompt(), mode);
-
-		// 2. Assemble the system prompt (routing + optional memory block).
-		String systemPrompt = buildSystemPrompt(relevantMemories);
-
-		// 3. Call ChatClient; on failure, propagate without persisting turns (clean
-		// retry).
+		List<Message> history = memoryMode.supportsShortTerm() ? conversationMemoryService.loadHistory(session)
+				: Collections.emptyList();
+		List<String> relevantMemories = memoryMode.supportsLongTerm()
+				? longTermMemoryService.retrieveRelevant(session.actorId(), prompt) : Collections.emptyList();
 		String response = chatClient.prompt()
-			.system(systemPrompt)
+			.system(buildSystemPrompt(relevantMemories))
 			.messages(history)
-			.user(request.prompt())
+			.user(prompt)
 			.call()
 			.content();
 		String content = Objects.requireNonNullElse(response, "");
 
-		// 4. Persist user and assistant turns after a successful ChatClient call.
-		if (mode != MemoryMode.NONE) {
-			conversationMemoryService.appendUserTurn(actorId, sessionId, request.prompt());
-			conversationMemoryService.appendAssistantTurn(actorId, sessionId, content);
-		}
+		persistTurns(session, prompt, content);
 
-		log.info("actorId={} sessionId={} prompt={} response={}", actorId, sessionId, request.prompt(), content);
-		return new InvocationResponse(content, sessionId, actorId);
-	}
-
-	private List<Message> loadHistory(String actorId, String sessionId, MemoryMode mode) {
-		if (mode == MemoryMode.SHORT_TERM || mode == MemoryMode.BOTH) {
-			return conversationMemoryService.loadHistory(actorId, sessionId);
-		}
-		return Collections.emptyList();
-	}
-
-	private List<String> retrieveRelevant(String actorId, String prompt, MemoryMode mode) {
-		if (mode == MemoryMode.LONG_TERM || mode == MemoryMode.BOTH) {
-			return longTermMemoryService.retrieveRelevant(actorId, prompt);
-		}
-		return Collections.emptyList();
+		log.info("session={} prompt={} response={}", session, prompt, content);
+		return toResponse(content, session);
 	}
 
 	private String buildSystemPrompt(List<String> relevantMemories) {
-		String agentDescriptions = connections.getAgentDescriptions();
-		String base = String.format(ROUTING_SYSTEM_PROMPT, agentDescriptions);
+		String base = ROUTING_SYSTEM_PROMPT.formatted(connections.getAgentDescriptions());
 		if (relevantMemories.isEmpty()) {
 			return base;
 		}
-		String memoriesBlock = "\n\n**관련 기억:**\n" + String.join("\n- ", relevantMemories);
-		return base + memoriesBlock;
+		return base + "\n\n**관련 기억:**\n" + String.join("\n- ", relevantMemories);
+	}
+
+	private void persistTurns(ConversationSession session, String prompt, String content) {
+		if (memoryMode.isDisabled()) {
+			return;
+		}
+		conversationMemoryService.appendUserTurn(session, prompt);
+		conversationMemoryService.appendAssistantTurn(session, content);
+	}
+
+	private InvocationResponse toResponse(String content, ConversationSession session) {
+		return memoryMode.isDisabled() ? new InvocationResponse(content, null, null)
+				: new InvocationResponse(content, session.sessionId(), session.actorId());
 	}
 
 }

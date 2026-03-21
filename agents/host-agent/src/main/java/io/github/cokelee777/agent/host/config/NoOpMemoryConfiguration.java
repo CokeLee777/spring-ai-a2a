@@ -2,6 +2,7 @@ package io.github.cokelee777.agent.host.config;
 
 import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
+import io.github.cokelee777.agent.host.memory.MemoryMode;
 import io.github.cokelee777.agent.host.memory.NoOpConversationMemoryService;
 import io.github.cokelee777.agent.host.memory.NoOpLongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.BedrockMemoryProperties;
@@ -24,6 +25,16 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "aws.bedrock.agent-core.memory.mode", havingValue = "none")
 @EnableConfigurationProperties(BedrockMemoryProperties.class)
 public class NoOpMemoryConfiguration {
+
+	/**
+	 * Exposes {@link MemoryMode#NONE} as a bean so that service-layer components do not
+	 * need to depend on the Bedrock-specific properties class.
+	 * @return {@link MemoryMode#NONE}
+	 */
+	@Bean
+	public MemoryMode memoryMode() {
+		return MemoryMode.NONE;
+	}
 
 	/**
 	 * No-op conversation memory service bean.

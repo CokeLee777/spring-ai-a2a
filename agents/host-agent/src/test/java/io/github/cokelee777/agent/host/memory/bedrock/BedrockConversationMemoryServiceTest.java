@@ -1,5 +1,6 @@
 package io.github.cokelee777.agent.host.memory.bedrock;
 
+import io.github.cokelee777.agent.host.memory.ConversationSession;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class BedrockConversationMemoryServiceTest {
 		ListEventsResponse response = ListEventsResponse.builder().events(List.of()).build();
 		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(response);
 
-		service.loadHistory("actor-1", "session-1");
+		service.loadHistory(new ConversationSession("actor-1", "session-1"));
 
 		ArgumentCaptor<ListEventsRequest> captor = ArgumentCaptor.forClass(ListEventsRequest.class);
 		verify(client).listEvents(captor.capture());
@@ -73,7 +74,7 @@ class BedrockConversationMemoryServiceTest {
 		ListEventsResponse response = ListEventsResponse.builder().events(List.of(assistantEvent, userEvent)).build();
 		when(client.listEvents(any(ListEventsRequest.class))).thenReturn(response);
 
-		List<Message> messages = service.loadHistory("actor-1", "session-1");
+		List<Message> messages = service.loadHistory(new ConversationSession("actor-1", "session-1"));
 
 		assertThat(messages).hasSize(2);
 		assertThat(messages.get(0)).isInstanceOf(UserMessage.class);
@@ -84,7 +85,7 @@ class BedrockConversationMemoryServiceTest {
 	void appendUserTurn_callsCreateEventWithUserRole() {
 		when(client.createEvent(any(CreateEventRequest.class))).thenReturn(CreateEventResponse.builder().build());
 
-		service.appendUserTurn("actor-1", "session-1", "hello");
+		service.appendUserTurn(new ConversationSession("actor-1", "session-1"), "hello");
 
 		ArgumentCaptor<CreateEventRequest> captor = ArgumentCaptor.forClass(CreateEventRequest.class);
 		verify(client).createEvent(captor.capture());
@@ -101,7 +102,7 @@ class BedrockConversationMemoryServiceTest {
 	void appendAssistantTurn_callsCreateEventWithAssistantRole() {
 		when(client.createEvent(any(CreateEventRequest.class))).thenReturn(CreateEventResponse.builder().build());
 
-		service.appendAssistantTurn("actor-1", "session-1", "got it");
+		service.appendAssistantTurn(new ConversationSession("actor-1", "session-1"), "got it");
 
 		ArgumentCaptor<CreateEventRequest> captor = ArgumentCaptor.forClass(CreateEventRequest.class);
 		verify(client).createEvent(captor.capture());

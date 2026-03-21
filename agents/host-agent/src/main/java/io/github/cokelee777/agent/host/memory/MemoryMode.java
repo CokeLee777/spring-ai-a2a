@@ -31,6 +31,30 @@ public enum MemoryMode {
 	/**
 	 * Both short-term and long-term. Recommended for production use.
 	 */
-	BOTH
+	BOTH;
+
+	/**
+	 * Returns {@code true} if conversation history should be loaded and persisted.
+	 * @return {@code true} for {@link #SHORT_TERM} and {@link #BOTH}
+	 */
+	public boolean supportsShortTerm() {
+		return this == SHORT_TERM || this == BOTH;
+	}
+
+	/**
+	 * Returns {@code true} if long-term memory retrieval should be performed.
+	 * @return {@code true} for {@link #LONG_TERM} and {@link #BOTH}
+	 */
+	public boolean supportsLongTerm() {
+		return this == LONG_TERM || this == BOTH;
+	}
+
+	/**
+	 * Returns {@code true} if memory is disabled and no session context is maintained.
+	 * @return {@code true} for {@link #NONE}
+	 */
+	public boolean isDisabled() {
+		return this == NONE;
+	}
 
 }

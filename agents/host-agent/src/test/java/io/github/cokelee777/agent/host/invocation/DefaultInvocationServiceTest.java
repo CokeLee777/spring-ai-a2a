@@ -2,9 +2,9 @@ package io.github.cokelee777.agent.host.invocation;
 
 import io.github.cokelee777.agent.host.RemoteAgentConnections;
 import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ConversationSession;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
-import io.github.cokelee777.agent.host.memory.bedrock.BedrockMemoryProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -49,45 +49,40 @@ class DefaultInvocationServiceTest {
 	private RemoteAgentConnections connections;
 
 	@Test
-	void modeNone_noMemoryCalls() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.NONE, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
+	void modeNone_noMemoryCallsAndNullSessionInResponse() {
+		DefaultInvocationService service = serviceWith(MemoryMode.NONE);
 		setupChatClientChain("reply");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
 		InvocationResponse response = service.invoke(new InvocationRequest("hello", null, null));
 
 		assertThat(response.content()).isEqualTo("reply");
+		assertThat(response.sessionId()).isNull();
+		assertThat(response.actorId()).isNull();
 		verifyNoInteractions(conversationMemoryService);
 		verifyNoInteractions(longTermMemoryService);
 	}
 
 	@Test
 	void modeShortTerm_loadsHistoryAndSavesTurnsAfterChatClient() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.SHORT_TERM, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
-		when(conversationMemoryService.loadHistory(anyString(), anyString()))
+		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
+		when(conversationMemoryService.loadHistory(any(ConversationSession.class)))
 			.thenReturn(List.of(new UserMessage("prev")));
 		setupChatClientChain("ok");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
 		service.invoke(new InvocationRequest("hi", "actor-1", "session-1"));
 
-		// 저장은 ChatClient 이후에 순서대로 호출된다
 		InOrder order = inOrder(chatClient, conversationMemoryService);
 		order.verify(chatClient).prompt();
-		order.verify(conversationMemoryService).appendUserTurn("actor-1", "session-1", "hi");
-		order.verify(conversationMemoryService).appendAssistantTurn("actor-1", "session-1", "ok");
+		order.verify(conversationMemoryService).appendUserTurn(any(ConversationSession.class), eq("hi"));
+		order.verify(conversationMemoryService).appendAssistantTurn(any(ConversationSession.class), eq("ok"));
 		verifyNoInteractions(longTermMemoryService);
 	}
 
 	@Test
 	void modeLongTerm_retrievesRelevantAndSavesTurns() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.LONG_TERM, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
+		DefaultInvocationService service = serviceWith(MemoryMode.LONG_TERM);
 		when(longTermMemoryService.retrieveRelevant(anyString(), anyString())).thenReturn(List.of("past info"));
 		setupChatClientChain("response");
 		when(connections.getAgentDescriptions()).thenReturn("");
@@ -95,19 +90,16 @@ class DefaultInvocationServiceTest {
 		service.invoke(new InvocationRequest("query", "actor-1", "session-1"));
 
 		verify(longTermMemoryService).retrieveRelevant("actor-1", "query");
-		verify(conversationMemoryService, never()).loadHistory(anyString(), anyString());
-		verify(conversationMemoryService).appendUserTurn(anyString(), anyString(), eq("query"));
+		verify(conversationMemoryService, never()).loadHistory(any(ConversationSession.class));
+		verify(conversationMemoryService).appendUserTurn(any(ConversationSession.class), eq("query"));
 	}
 
 	@Test
 	void chatClientFailure_noMemorySaved() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.BOTH, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
-		when(conversationMemoryService.loadHistory(anyString(), anyString())).thenReturn(List.of());
+		DefaultInvocationService service = serviceWith(MemoryMode.BOTH);
+		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		when(longTermMemoryService.retrieveRelevant(anyString(), anyString())).thenReturn(List.of());
 		when(connections.getAgentDescriptions()).thenReturn("");
-		// ChatClient 호출 시 예외 발생
 		when(chatClient.prompt()).thenReturn(requestSpec);
 		when(requestSpec.system(anyString())).thenReturn(requestSpec);
 		when(requestSpec.messages(anyList())).thenReturn(requestSpec);
@@ -117,15 +109,14 @@ class DefaultInvocationServiceTest {
 		assertThatThrownBy(() -> service.invoke(new InvocationRequest("hi", "actor-1", "session-1")))
 			.isInstanceOf(RuntimeException.class);
 
-		verify(conversationMemoryService, never()).appendUserTurn(anyString(), anyString(), anyString());
-		verify(conversationMemoryService, never()).appendAssistantTurn(anyString(), anyString(), anyString());
+		verify(conversationMemoryService, never()).appendUserTurn(any(ConversationSession.class), anyString());
+		verify(conversationMemoryService, never()).appendAssistantTurn(any(ConversationSession.class), anyString());
 	}
 
 	@Test
 	void noSessionId_generatesNewSessionIdInResponse() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.NONE, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
+		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
+		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		setupChatClientChain("hi");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
@@ -137,9 +128,8 @@ class DefaultInvocationServiceTest {
 
 	@Test
 	void providedSessionId_returnsSameSessionIdInResponse() {
-		BedrockMemoryProperties props = new BedrockMemoryProperties(MemoryMode.NONE, "mem", "strat", 10, 4);
-		DefaultInvocationService service = new DefaultInvocationService(conversationMemoryService,
-				longTermMemoryService, chatClient, connections, props);
+		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
+		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		setupChatClientChain("reply");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
@@ -149,7 +139,11 @@ class DefaultInvocationServiceTest {
 		assertThat(response.actorId()).isEqualTo("actor-1");
 	}
 
-	// ChatClient mock chain helper
+	private DefaultInvocationService serviceWith(MemoryMode mode) {
+		return new DefaultInvocationService(chatClient, connections, mode, conversationMemoryService,
+				longTermMemoryService);
+	}
+
 	private void setupChatClientChain(String content) {
 		when(chatClient.prompt()).thenReturn(requestSpec);
 		when(requestSpec.system(anyString())).thenReturn(requestSpec);

@@ -15,28 +15,25 @@ import java.util.List;
 public interface ConversationMemoryService {
 
 	/**
-	 * Returns the conversation history for the given actor and session. Returns an empty
-	 * list when there is no history (first message).
-	 * @param actorId the actor identifier
-	 * @param sessionId the session identifier
+	 * Returns the conversation history for the given session. Returns an empty list when
+	 * there is no history (first message).
+	 * @param session the conversation session identifier
 	 * @return ordered list of {@link Message} objects (oldest first)
 	 */
-	List<Message> loadHistory(String actorId, String sessionId);
+	List<Message> loadHistory(ConversationSession session);
 
 	/**
 	 * Appends a user turn to the short-term memory.
-	 * @param actorId the actor identifier
-	 * @param sessionId the session identifier
+	 * @param session the conversation session identifier
 	 * @param userText the user message text
 	 */
-	void appendUserTurn(String actorId, String sessionId, String userText);
+	void appendUserTurn(ConversationSession session, String userText);
 
 	/**
 	 * Appends an assistant turn to the short-term memory.
-	 * @param actorId the actor identifier
-	 * @param sessionId the session identifier
+	 * @param session the conversation session identifier
 	 * @param assistantText the assistant response text
 	 */
-	void appendAssistantTurn(String actorId, String sessionId, String assistantText);
+	void appendAssistantTurn(ConversationSession session, String assistantText);
 
 }
