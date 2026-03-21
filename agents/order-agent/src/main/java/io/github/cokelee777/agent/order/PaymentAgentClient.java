@@ -27,6 +27,8 @@ public class PaymentAgentClient {
 	 * @param properties the remote agent connection properties
 	 */
 	public PaymentAgentClient(RemoteAgentProperties properties) {
+		Assert.notNull(properties, "properties must not be null");
+
 		lazyCard = new LazyAgentCard(properties.agents().get("payment-agent").url());
 	}
 

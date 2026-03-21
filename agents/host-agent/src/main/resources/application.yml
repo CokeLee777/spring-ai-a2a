@@ -9,13 +9,23 @@ spring:
       converse:
         chat:
           options:
-            model: ${BEDROCK_MODEL_ID:arn:aws:bedrock:ap-northeast-2:<ACCOUNT_ID>:inference-profile/apac.amazon.nova-lite-v1:0}
+            model: ${BEDROCK_MODEL_ID:}
 
 remote:
   agents:
     order-agent:
-      url: ${ORDER_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/order-agent}
+      url: ${ORDER_AGENT_URL:}
     delivery-agent:
-      url: ${DELIVERY_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/delivery-agent}
+      url: ${DELIVERY_AGENT_URL:}
     payment-agent:
-      url: ${PAYMENT_AGENT_URL:arn:aws:bedrock-agentcore:ap-northeast-2:<ACCOUNT_ID>:runtime/payment-agent}
+      url: ${PAYMENT_AGENT_URL:}
+
+aws:
+  bedrock:
+    agent-core:
+      memory:
+        mode: ${BEDROCK_MEMORY_MODE:none}
+        memory-id: ${BEDROCK_MEMORY_ID:}
+        strategy-id: ${BEDROCK_MEMORY_STRATEGY_ID:}
+        short-term-max-turns: 10
+        long-term-max-results: 4

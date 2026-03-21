@@ -20,10 +20,3 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 tasks.named<Jar>("jar") {
     enabled = false
 }
-
-sourceSets {
-    test {
-        java.srcDir("src/test/java")
-        resources.srcDir("src/test/resources")
-    }
-}

@@ -27,6 +27,8 @@ public class DeliveryAgentClient {
 	 * @param properties the remote agent connection properties
 	 */
 	public DeliveryAgentClient(RemoteAgentProperties properties) {
+		Assert.notNull(properties, "properties must not be null");
+
 		lazyCard = new LazyAgentCard(properties.agents().get("delivery-agent").url());
 	}
 
