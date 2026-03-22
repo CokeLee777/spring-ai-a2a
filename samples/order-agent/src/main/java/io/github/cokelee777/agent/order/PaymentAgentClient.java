@@ -2,8 +2,8 @@ package io.github.cokelee777.agent.order;
 
 import io.a2a.A2A;
 import io.a2a.spec.Message;
-import io.github.cokelee777.agent.common.A2ATransport;
-import io.github.cokelee777.agent.common.LazyAgentCard;
+import io.github.cokelee777.a2a.agent.common.A2ATransport;
+import io.github.cokelee777.a2a.agent.common.LazyAgentCard;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

@@ -1,0 +1,83 @@
+package io.github.cokelee777.a2a.agent.common;
+
+import io.a2a.client.Client;
+import io.a2a.client.ClientEvent;
+import io.a2a.client.TaskEvent;
+import io.a2a.client.config.ClientConfig;
+import io.a2a.client.transport.jsonrpc.JSONRPCTransport;
+import io.a2a.client.transport.jsonrpc.JSONRPCTransportConfig;
+import io.a2a.spec.AgentCard;
+import io.a2a.spec.Message;
+import io.a2a.spec.Task;
+import io.a2a.spec.TaskState;
+import io.github.cokelee777.a2a.agent.common.util.TextExtractor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+
+/**
+ * Utility class for sending a {@link Message} to a downstream A2A agent and collecting
+ * the full text response.
+ *
+ * <p>
+ * All methods are static; this class is not meant to be instantiated.
+ * </p>
+ */
+@Slf4j
+public class A2ATransport {
+
+	/**
+	 * Sends {@code message} to the downstream agent identified by {@code agentCard} and
+	 * waits up to 60 seconds for the response.
+	 *
+	 * <p>
+	 * Returns an error message string when the agent task fails, the timeout elapses, or
+	 * any exception occurs.
+	 * </p>
+	 * @param agentCard the target agent's {@link AgentCard}
+	 * @param message the A2A {@link Message} to send
+	 * @return the concatenated text from all response artifacts, or an error message if
+	 * the call fails
+	 */
+	public static String send(AgentCard agentCard, Message message) {
+		try {
+			// Use CompletableFuture to wait for the response
+			CompletableFuture<String> responseFuture = new CompletableFuture<>();
+			BiConsumer<ClientEvent, AgentCard> consumer = (event, card) -> {
+				if (event instanceof TaskEvent taskEvent) {
+					Task task = taskEvent.getTask();
+					log.debug("Received task response: status={}", task.getStatus().state());
+
+					if (TaskState.FAILED.equals(task.getStatus().state())) {
+						responseFuture.complete("");
+						return;
+					}
+					responseFuture.complete(TextExtractor.extractTextFromTask(task));
+				}
+			};
+
+			// Create client with consumer via builder
+			ClientConfig clientConfig = new ClientConfig.Builder().setAcceptedOutputModes(List.of("text")).build();
+			Client client = Client.builder(agentCard)
+				.clientConfig(clientConfig)
+				.withTransport(JSONRPCTransport.class, new JSONRPCTransportConfig())
+				.addConsumers(List.of(consumer))
+				.build();
+
+			client.sendMessage(message);
+
+			// Wait for response (with timeout)
+			String result = responseFuture.get(60, TimeUnit.SECONDS);
+			log.debug("Agent '{}' response: {}", agentCard.name(), result);
+			return result;
+		}
+		catch (Exception e) {
+			log.error("Error sending message to agent '{}': {}", agentCard.name(), e.getMessage());
+			return String.format("Error communicating with agent '%s': %s", agentCard.name(), e.getMessage());
+		}
+	}
+
+}
