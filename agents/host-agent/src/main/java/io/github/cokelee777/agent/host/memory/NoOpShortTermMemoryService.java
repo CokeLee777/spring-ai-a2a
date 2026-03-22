@@ -6,14 +6,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * No-operation implementation of {@link ConversationMemoryService}.
+ * No-operation implementation of {@link ShortTermMemoryService}.
  *
  * <p>
  * Used when {@code aws.bedrock.agent-core.memory.mode=none}. All operations are no-ops so
  * the application starts without AWS credentials.
  * </p>
  */
-public class NoOpConversationMemoryService implements ConversationMemoryService {
+public class NoOpShortTermMemoryService implements ShortTermMemoryService {
 
 	@Override
 	public List<Message> loadHistory(ConversationSession session) {

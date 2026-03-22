@@ -21,6 +21,6 @@ import org.springframework.util.Assert;
 public record InvocationResponse(String content, @Nullable String sessionId, @Nullable String actorId) {
 
 	public InvocationResponse {
-		Assert.hasText(content, "content must not be blank");
+		Assert.notNull(content, "content must not be null");
 	}
 }

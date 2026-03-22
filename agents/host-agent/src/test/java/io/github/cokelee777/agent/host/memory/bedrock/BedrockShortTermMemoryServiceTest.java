@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BedrockConversationMemoryServiceTest {
+class BedrockShortTermMemoryServiceTest {
 
 	@Mock
 	private BedrockAgentCoreClient client;
@@ -40,13 +40,13 @@ class BedrockConversationMemoryServiceTest {
 
 	private AgentCoreEventToMessageConverter converter;
 
-	private BedrockConversationMemoryService service;
+	private BedrockShortTermMemoryService service;
 
 	@BeforeEach
 	void setUp() {
 		properties = new BedrockMemoryProperties(MemoryMode.BOTH, "mem-1", "strategy-1", 5, 4);
 		converter = new AgentCoreEventToMessageConverter();
-		service = new BedrockConversationMemoryService(client, properties, converter);
+		service = new BedrockShortTermMemoryService(client, properties, converter);
 	}
 
 	@Test

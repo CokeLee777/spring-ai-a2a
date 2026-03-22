@@ -53,7 +53,7 @@ public class BedrockLongTermMemoryService implements LongTermMemoryService {
 	public List<String> retrieveRelevant(String actorId, String searchQuery) {
 		String strategyId = properties.strategyId();
 		try {
-			String namespace = "/strategies/" + strategyId + "/actors/" + actorId;
+			String namespace = "/strategies/%s/actors/%s".formatted(strategyId, actorId);
 			SearchCriteria criteria = SearchCriteria.builder()
 				.memoryStrategyId(strategyId)
 				.searchQuery(searchQuery)

@@ -5,6 +5,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.services.bedrockagentcore.model.Conversational;
 import software.amazon.awssdk.services.bedrockagentcore.model.Event;
 import software.amazon.awssdk.services.bedrockagentcore.model.PayloadType;
 import software.amazon.awssdk.services.bedrockagentcore.model.Role;
@@ -65,8 +66,9 @@ public class AgentCoreEventToMessageConverter {
 		if (payload.conversational() == null) {
 			return null;
 		}
-		String text = payload.conversational().content() != null ? payload.conversational().content().text() : "";
-		Role role = payload.conversational().role();
+		Conversational conversational = payload.conversational();
+		String text = conversational.content() != null ? conversational.content().text() : "";
+		Role role = conversational.role();
 		if (Role.USER.equals(role)) {
 			return new UserMessage(Objects.requireNonNullElse(text, ""));
 		}

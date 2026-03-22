@@ -4,14 +4,13 @@ import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
 import io.github.cokelee777.agent.host.memory.NoOpLongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.AgentCoreEventToMessageConverter;
-import io.github.cokelee777.agent.host.memory.bedrock.BedrockConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.bedrock.BedrockShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.BedrockLongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.BedrockMemoryProperties;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
@@ -27,7 +26,7 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
  * </p>
  */
 @Configuration
-@ConditionalOnExpression("!'none'.equalsIgnoreCase('${aws.bedrock.agent-core.memory.mode}')")
+@Conditional(MemoryEnabledCondition.class)
 @EnableConfigurationProperties(BedrockMemoryProperties.class)
 public class BedrockMemoryConfiguration {
 
@@ -62,24 +61,25 @@ public class BedrockMemoryConfiguration {
 	}
 
 	/**
-	 * Creates the Bedrock short-term conversation memory service.
+	 * Creates the Bedrock short-term memory service.
 	 * @param client the Bedrock client
 	 * @param properties the memory properties
 	 * @param converter the event-to-message converter
 	 * @return the service
 	 */
 	@Bean
-	public BedrockConversationMemoryService conversationMemoryService(BedrockAgentCoreClient client,
+	public BedrockShortTermMemoryService shortTermMemoryService(BedrockAgentCoreClient client,
 			BedrockMemoryProperties properties, AgentCoreEventToMessageConverter converter) {
-		return new BedrockConversationMemoryService(client, properties, converter);
+		return new BedrockShortTermMemoryService(client, properties, converter);
 	}
 
 	/**
-	 * Creates a no-op long-term memory service when mode is {@code short_term}.
+	 * Creates a no-op long-term memory service when the mode does not support long-term
+	 * memory retrieval.
 	 * @return a no-op implementation
 	 */
 	@Bean
-	@ConditionalOnProperty(name = "aws.bedrock.agent-core.memory.mode", havingValue = "short_term")
+	@Conditional(LongTermNotSupportedCondition.class)
 	public LongTermMemoryService noOpLongTermMemoryService() {
 		return new NoOpLongTermMemoryService();
 	}
@@ -92,7 +92,7 @@ public class BedrockMemoryConfiguration {
 	 * @return the service
 	 */
 	@Bean
-	@ConditionalOnExpression("'${aws.bedrock.agent-core.memory.mode}'.equalsIgnoreCase('long_term') or '${aws.bedrock.agent-core.memory.mode}'.equalsIgnoreCase('both')")
+	@Conditional(LongTermMemoryCondition.class)
 	public BedrockLongTermMemoryService bedrockLongTermMemoryService(BedrockAgentCoreClient client,
 			BedrockMemoryProperties properties) {
 		return new BedrockLongTermMemoryService(client, properties);

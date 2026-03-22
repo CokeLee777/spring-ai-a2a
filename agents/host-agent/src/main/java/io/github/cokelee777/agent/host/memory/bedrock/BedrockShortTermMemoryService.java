@@ -1,6 +1,6 @@
 package io.github.cokelee777.agent.host.memory.bedrock;
 
-import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.ConversationSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Amazon Bedrock AgentCore implementation of {@link ConversationMemoryService}.
+ * Amazon Bedrock AgentCore implementation of {@link ShortTermMemoryService}.
  *
  * <p>
  * Uses {@code listEvents} to load short-term history and {@code createEvent} to append
@@ -35,7 +35,7 @@ import java.util.Objects;
  * </p>
  */
 @Slf4j
-public class BedrockConversationMemoryService implements ConversationMemoryService {
+public class BedrockShortTermMemoryService implements ShortTermMemoryService {
 
 	private final BedrockAgentCoreClient client;
 
@@ -49,7 +49,7 @@ public class BedrockConversationMemoryService implements ConversationMemoryServi
 	 * @param properties the memory properties
 	 * @param converter the event-to-message converter
 	 */
-	public BedrockConversationMemoryService(BedrockAgentCoreClient client, BedrockMemoryProperties properties,
+	public BedrockShortTermMemoryService(BedrockAgentCoreClient client, BedrockMemoryProperties properties,
 			AgentCoreEventToMessageConverter converter) {
 		Assert.hasText(properties.memoryId(),
 				"aws.bedrock.agent-core.memory.memory-id must be set when mode is not 'none'");

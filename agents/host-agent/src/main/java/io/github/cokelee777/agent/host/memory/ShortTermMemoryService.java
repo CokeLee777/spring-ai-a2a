@@ -5,14 +5,14 @@ import org.springframework.ai.chat.messages.Message;
 import java.util.List;
 
 /**
- * Short-term conversation memory service.
+ * Short-term memory service.
  *
  * <p>
  * Loads and persists per-session conversation history so that the LLM can reference
  * previous turns within the same session.
  * </p>
  */
-public interface ConversationMemoryService {
+public interface ShortTermMemoryService {
 
 	/**
 	 * Returns the conversation history for the given session. Returns an empty list when

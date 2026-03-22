@@ -1,19 +1,28 @@
 package io.github.cokelee777.agent.host.config;
 
-import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
-import io.github.cokelee777.agent.host.memory.NoOpConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.NoOpShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.NoOpLongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.bedrock.BedrockMemoryProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Registers no-operation memory beans when
- * {@code aws.bedrock.agent-core.memory.mode=none}.
+ * Registers no-operation memory beans when memory is disabled (mode is {@code none} or
+ * the property is absent).
+ *
+ * <p>
+ * This is the logical counterpart of {@link BedrockMemoryConfiguration}, which activates
+ * via {@link MemoryEnabledCondition}. Exactly one of the two configurations is always
+ * active, guaranteeing that
+ * {@link io.github.cokelee777.agent.host.memory.ShortTermMemoryService},
+ * {@link io.github.cokelee777.agent.host.memory.LongTermMemoryService}, and
+ * {@link io.github.cokelee777.agent.host.memory.MemoryMode} beans are always present.
+ * </p>
  *
  * <p>
  * Allows the application to start without AWS credentials (e.g., local development). Also
@@ -22,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  * </p>
  */
 @Configuration
-@ConditionalOnProperty(name = "aws.bedrock.agent-core.memory.mode", havingValue = "none")
+@Conditional(MemoryDisabledCondition.class)
 @EnableConfigurationProperties(BedrockMemoryProperties.class)
 public class NoOpMemoryConfiguration {
 
@@ -37,12 +46,12 @@ public class NoOpMemoryConfiguration {
 	}
 
 	/**
-	 * No-op conversation memory service bean.
-	 * @return a {@link NoOpConversationMemoryService} instance
+	 * No-op short-term memory service bean.
+	 * @return a {@link NoOpShortTermMemoryService} instance
 	 */
 	@Bean
-	public ConversationMemoryService conversationMemoryService() {
-		return new NoOpConversationMemoryService();
+	public ShortTermMemoryService shortTermMemoryService() {
+		return new NoOpShortTermMemoryService();
 	}
 
 	/**

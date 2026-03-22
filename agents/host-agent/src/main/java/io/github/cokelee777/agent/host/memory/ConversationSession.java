@@ -12,7 +12,7 @@ import java.util.UUID;
  * <p>
  * {@code actorId} and {@code sessionId} always travel together in conversation memory
  * operations. Grouping them prevents parameter list pollution across
- * {@link ConversationMemoryService} methods.
+ * {@link ShortTermMemoryService} methods.
  * </p>
  *
  * <p>

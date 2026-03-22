@@ -1,7 +1,7 @@
 package io.github.cokelee777.agent.host.invocation;
 
 import io.github.cokelee777.agent.host.RemoteAgentConnections;
-import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.ConversationSession;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class DefaultInvocationServiceTest {
 
 	@Mock
-	private ConversationMemoryService conversationMemoryService;
+	private ShortTermMemoryService shortTermMemoryService;
 
 	@Mock
 	private LongTermMemoryService longTermMemoryService;
@@ -49,7 +49,7 @@ class DefaultInvocationServiceTest {
 	private RemoteAgentConnections connections;
 
 	@Test
-	void modeNone_noMemoryCallsAndNullSessionInResponse() {
+	void modeNone_nullSessionInResponse() {
 		DefaultInvocationService service = serviceWith(MemoryMode.NONE);
 		setupChatClientChain("reply");
 		when(connections.getAgentDescriptions()).thenReturn("");
@@ -59,29 +59,27 @@ class DefaultInvocationServiceTest {
 		assertThat(response.content()).isEqualTo("reply");
 		assertThat(response.sessionId()).isNull();
 		assertThat(response.actorId()).isNull();
-		verifyNoInteractions(conversationMemoryService);
-		verifyNoInteractions(longTermMemoryService);
 	}
 
 	@Test
 	void modeShortTerm_loadsHistoryAndSavesTurnsAfterChatClient() {
 		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
-		when(conversationMemoryService.loadHistory(any(ConversationSession.class)))
+		when(shortTermMemoryService.loadHistory(any(ConversationSession.class)))
 			.thenReturn(List.of(new UserMessage("prev")));
 		setupChatClientChain("ok");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
 		service.invoke(new InvocationRequest("hi", "actor-1", "session-1"));
 
-		InOrder order = inOrder(chatClient, conversationMemoryService);
+		InOrder order = inOrder(chatClient, shortTermMemoryService);
 		order.verify(chatClient).prompt();
-		order.verify(conversationMemoryService).appendUserTurn(any(ConversationSession.class), eq("hi"));
-		order.verify(conversationMemoryService).appendAssistantTurn(any(ConversationSession.class), eq("ok"));
+		order.verify(shortTermMemoryService).appendUserTurn(any(ConversationSession.class), eq("hi"));
+		order.verify(shortTermMemoryService).appendAssistantTurn(any(ConversationSession.class), eq("ok"));
 		verifyNoInteractions(longTermMemoryService);
 	}
 
 	@Test
-	void modeLongTerm_retrievesRelevantAndSavesTurns() {
+	void modeLongTerm_retrievesRelevantAndDoesNotPersistShortTermTurns() {
 		DefaultInvocationService service = serviceWith(MemoryMode.LONG_TERM);
 		when(longTermMemoryService.retrieveRelevant(anyString(), anyString())).thenReturn(List.of("past info"));
 		setupChatClientChain("response");
@@ -90,14 +88,15 @@ class DefaultInvocationServiceTest {
 		service.invoke(new InvocationRequest("query", "actor-1", "session-1"));
 
 		verify(longTermMemoryService).retrieveRelevant("actor-1", "query");
-		verify(conversationMemoryService, never()).loadHistory(any(ConversationSession.class));
-		verify(conversationMemoryService).appendUserTurn(any(ConversationSession.class), eq("query"));
+		verify(shortTermMemoryService, never()).loadHistory(any(ConversationSession.class));
+		verify(shortTermMemoryService, never()).appendUserTurn(any(ConversationSession.class), anyString());
+		verify(shortTermMemoryService, never()).appendAssistantTurn(any(ConversationSession.class), anyString());
 	}
 
 	@Test
 	void chatClientFailure_noMemorySaved() {
 		DefaultInvocationService service = serviceWith(MemoryMode.BOTH);
-		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
+		when(shortTermMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		when(longTermMemoryService.retrieveRelevant(anyString(), anyString())).thenReturn(List.of());
 		when(connections.getAgentDescriptions()).thenReturn("");
 		when(chatClient.prompt()).thenReturn(requestSpec);
@@ -109,14 +108,14 @@ class DefaultInvocationServiceTest {
 		assertThatThrownBy(() -> service.invoke(new InvocationRequest("hi", "actor-1", "session-1")))
 			.isInstanceOf(RuntimeException.class);
 
-		verify(conversationMemoryService, never()).appendUserTurn(any(ConversationSession.class), anyString());
-		verify(conversationMemoryService, never()).appendAssistantTurn(any(ConversationSession.class), anyString());
+		verify(shortTermMemoryService, never()).appendUserTurn(any(ConversationSession.class), anyString());
+		verify(shortTermMemoryService, never()).appendAssistantTurn(any(ConversationSession.class), anyString());
 	}
 
 	@Test
 	void noSessionId_generatesNewSessionIdInResponse() {
 		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
-		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
+		when(shortTermMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		setupChatClientChain("hi");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
@@ -129,7 +128,7 @@ class DefaultInvocationServiceTest {
 	@Test
 	void providedSessionId_returnsSameSessionIdInResponse() {
 		DefaultInvocationService service = serviceWith(MemoryMode.SHORT_TERM);
-		when(conversationMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
+		when(shortTermMemoryService.loadHistory(any(ConversationSession.class))).thenReturn(List.of());
 		setupChatClientChain("reply");
 		when(connections.getAgentDescriptions()).thenReturn("");
 
@@ -140,7 +139,7 @@ class DefaultInvocationServiceTest {
 	}
 
 	private DefaultInvocationService serviceWith(MemoryMode mode) {
-		return new DefaultInvocationService(chatClient, connections, mode, conversationMemoryService,
+		return new DefaultInvocationService(chatClient, connections, mode, shortTermMemoryService,
 				longTermMemoryService);
 	}
 

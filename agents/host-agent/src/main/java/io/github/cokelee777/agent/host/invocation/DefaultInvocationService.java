@@ -1,7 +1,7 @@
 package io.github.cokelee777.agent.host.invocation;
 
 import io.github.cokelee777.agent.host.RemoteAgentConnections;
-import io.github.cokelee777.agent.host.memory.ConversationMemoryService;
+import io.github.cokelee777.agent.host.memory.ShortTermMemoryService;
 import io.github.cokelee777.agent.host.memory.ConversationSession;
 import io.github.cokelee777.agent.host.memory.LongTermMemoryService;
 import io.github.cokelee777.agent.host.memory.MemoryMode;
@@ -69,7 +69,7 @@ public class DefaultInvocationService implements InvocationService {
 
 	private final MemoryMode memoryMode;
 
-	private final ConversationMemoryService conversationMemoryService;
+	private final ShortTermMemoryService shortTermMemoryService;
 
 	private final LongTermMemoryService longTermMemoryService;
 
@@ -81,7 +81,7 @@ public class DefaultInvocationService implements InvocationService {
 			.sessionId(request.sessionId())
 			.build();
 
-		List<Message> history = memoryMode.supportsShortTerm() ? conversationMemoryService.loadHistory(session)
+		List<Message> history = memoryMode.supportsShortTerm() ? shortTermMemoryService.loadHistory(session)
 				: Collections.emptyList();
 		List<String> relevantMemories = memoryMode.supportsLongTerm()
 				? longTermMemoryService.retrieveRelevant(session.actorId(), prompt) : Collections.emptyList();
@@ -104,15 +104,15 @@ public class DefaultInvocationService implements InvocationService {
 		if (relevantMemories.isEmpty()) {
 			return base;
 		}
-		return base + "\n\n**관련 기억:**\n" + String.join("\n- ", relevantMemories);
+		return base + "\n\n**관련 기억:**\n- " + String.join("\n- ", relevantMemories);
 	}
 
 	private void persistTurns(ConversationSession session, String prompt, String content) {
-		if (memoryMode.isDisabled()) {
+		if (!memoryMode.supportsShortTerm()) {
 			return;
 		}
-		conversationMemoryService.appendUserTurn(session, prompt);
-		conversationMemoryService.appendAssistantTurn(session, content);
+		shortTermMemoryService.appendUserTurn(session, prompt);
+		shortTermMemoryService.appendAssistantTurn(session, content);
 	}
 
 	private InvocationResponse toResponse(String content, ConversationSession session) {
