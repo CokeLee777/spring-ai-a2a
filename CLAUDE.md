@@ -18,7 +18,7 @@ SPRING_PROFILES_ACTIVE=local ./gradlew :delivery-agent:bootRun
 SPRING_PROFILES_ACTIVE=local ./gradlew :payment-agent:bootRun
 
 # 특정 모듈 컴파일 확인
-./gradlew :agent-common:compileJava
+./gradlew :spring-ai-a2a-agent-common:compileJava
 ```
 
 Gradle Kotlin DSL 사용: 루트 `build.gradle.kts`, `settings.gradle.kts`, 서브프로젝트 `build.gradle.kts`.
@@ -26,27 +26,37 @@ Gradle Kotlin DSL 사용: 루트 `build.gradle.kts`, `settings.gradle.kts`, 서�
 ## 모듈 구조
 
 ```
-amazon-bedrock-agentcore-spring-ai-a2a-samples/
-├── agent-common/                              # 공유 유틸리티
+spring-ai-a2a/
+├── spring-ai-a2a-agent-common/              # 공유 유틸리티
 │   ├── A2ATransport                         # A2A 클라이언트 (TaskEvent 수신, 동기 블로킹)
 │   ├── LazyAgentCard                        # AgentCard lazy 로딩·캐싱 (시작 실패 시 첫 호출에 재시도)
 │   └── util/TextExtractor                   # Task/Message에서 텍스트 추출
-├── spring-ai-a2a-server/                    # A2A 서버 구현체 (JSON-RPC, AgentCard, Ping 컨트롤러)
-├── spring-ai-a2a-server-autoconfigure/      # A2A 서버·공통 자동 구성
-│   ├── A2AServerAutoConfiguration           # AgentExecutor 빈 있을 때만 활성화
-│   │   ├── a2aTaskExecutor                  # Virtual thread 기반 Executor (에이전트 비동기 실행)
-│   │   ├── DefaultValuesConfigProvider      # A2A SDK 기본값 (a2a.blocking.* 등)
-│   │   └── SpringA2AConfigProvider          # Environment + 기본값 폴백 (커스텀 시 DEBUG 로그)
-│   └── A2ACommonAutoConfiguration           # AgentCard 빈 있을 때만 활성화
-├── memory/repository/
-│   └── spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core/
-│       ├── BedrockChatMemoryRepository      # ChatMemoryRepository 구현체 (append, conversationId="actorId:sessionId")
-│       └── AgentCoreEventToMessageConverter # AgentCore Event → Spring AI Message 변환
+├── spring-ai-a2a-server/                    # A2A 서버 구현체
+│   ├── controller/AgentCardController       # GET /.well-known/agent-card.json
+│   ├── controller/MessageController         # A2A JSON-RPC 메시지 엔드포인트
+│   ├── controller/TaskController            # A2A Task API 엔드포인트
+│   ├── executor/DefaultAgentExecutor        # AgentExecutor 기본 구현체 (task 생명주기 관리)
+│   └── executor/ChatClientExecutorHandler   # 에이전트 로직 위임 함수형 인터페이스
+├── auto-configurations/agent/common/
+│   └── spring-ai-a2a-autoconfigure-agent-common/   # 에이전트 공통 자동 구성
+│       └── AgentCommonAutoConfiguration     # PingController 등록 (항상 활성화)
+├── auto-configurations/server/
+│   └── spring-ai-a2a-autoconfigure-server/          # A2A 서버 인프라 자동 구성
+│       ├── A2AServerAutoConfiguration       # ChatClient 클래스가 클래스패스에 있을 때 활성화
+│       │   ├── a2aTaskExecutor              # Virtual thread 기반 Executor (에이전트 비동기 실행)
+│       │   ├── DefaultValuesConfigProvider  # A2A SDK 기본값 (a2a.blocking.* 등)
+│       │   └── SpringA2AConfigProvider      # Environment + 기본값 폴백 (커스텀 시 INFO 로그)
+│       └── A2AServerProperties              # @ConfigurationProperties(prefix=spring.ai.a2a.server)
 ├── auto-configurations/models/chat/memory/repository/
 │   └── spring-ai-a2a-autoconfigure-model-chat-memory-repository-bedrock-agent-core/
 │       ├── BedrockChatMemoryAutoConfiguration   # @AutoConfiguration(before=ChatMemoryAutoConfiguration)
 │       └── BedrockChatMemoryRepositoryProperties  # @ConfigurationProperties(prefix=spring.ai.chat.memory.repository.bedrock.agent-core)
-├── agents/
+├── memory/repository/
+│   └── spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core/
+│       ├── BedrockChatMemoryRepository      # ChatMemoryRepository 구현체 (append, conversationId="actorId:sessionId")
+│       ├── AgentCoreEventToMessageConverter # AgentCore Event → Spring AI Message 변환
+│       └── BedrockChatMemoryRepositoryConfig  # memoryId, maxTurns 설정 빈
+├── samples/
 │   ├── host-agent/   (port: 8080)           # AgentCore Runtime 진입점 · 오케스트레이터
 │   │   ├── InvocationsController            # POST /invocations, 요청마다 동적 시스템 프롬프트 생성
 │   │   ├── RemoteAgentConnections           # 다운스트림 에이전트 호출 Tool (@Tool), LazyAgentCard 맵 관리
@@ -61,7 +71,7 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 │   │   └── DeliveryTools                    # trackDelivery
 │   └── payment-agent/ (port: 9003)          # 결제/환불 상태 확인 A2A 에이전트
 │       └── PaymentTools                     # getPaymentStatus
-└── integration-tests/                       # 전체 에이전트 통합 테스트 (jar 미생성)
+└── spring-ai-a2a-integration-tests/         # 전체 에이전트 통합 테스트 (jar 미생성)
     ├── HostAgentIntegrationTest
     ├── OrderAgentIntegrationTest
     ├── DeliveryAgentIntegrationTest
@@ -77,7 +87,7 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 - `sendMessage()` 는 동기 블로킹 호출이다. `CompletableFuture.supplyAsync()` 로 별도 스레드에서 실행하고
   `.get(timeoutSeconds, TimeUnit.SECONDS)` 로 실제 타임아웃을 강제한다.
 
-### LazyAgentCard (agent-common)
+### LazyAgentCard (spring-ai-a2a-agent-common)
 
 - 생성자에서 즉시 AgentCard fetch를 시도하고, 실패하면 URL을 보관한다.
 - `get()` — card가 null이면 매 호출마다 재시도. 실제 에이전트 통신 직전에 사용한다.
@@ -115,7 +125,7 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 
 - `a2a.blocking.agent.timeout.seconds` — 에이전트 실행(LLM·툴·다운스트림 호출) 완료 대기 최대 시간(초). 기본 30.
 - `a2a.blocking.consumption.timeout.seconds` — 이벤트 소비/영속화(TaskStore 반영) 완료 대기 최대 시간(초). 기본 5.
-- autoconfigure의 `src/main/resources/application.yml`에 기본값이 있으며, 각 에이전트 모듈의 `application.yml`에서 재정의하면 **오버라이드**된다 (Spring Boot: 메인 앱 설정이 라이브러리보다 우선).
+- `auto-configurations/server/spring-ai-a2a-autoconfigure-server/src/main/resources/application.yml`에 기본값이 있으며, 각 에이전트 모듈의 `application.yml`에서 재정의하면 **오버라이드**된다 (Spring Boot: 메인 앱 설정이 라이브러리보다 우선).
 - 커스텀 값을 쓰면 `SpringA2AConfigProvider`에서 INFO 로그로 `Using custom A2A config: key=value` 또는 `Using custom A2A optional config: key=value` 출력.
 
 ### BedrockChatMemoryRepositoryProperties (autoconfigure 모듈)
@@ -141,8 +151,8 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 
 ### auto-configure 활성화 조건
 
-- `A2AServerAutoConfiguration` — `AgentExecutor` 빈이 컨텍스트에 있을 때만 활성화 (다운스트림 에이전트 서버용).
-- `A2ACommonAutoConfiguration` — `AgentCard` 빈이 컨텍스트에 있을 때만 활성화 (Ping + AgentCard 컨트롤러).
+- `A2AServerAutoConfiguration` — `@ConditionalOnClass(ChatClient.class)` + `@ConditionalOnProperty(spring.ai.a2a.server.enabled, matchIfMissing=true)`. A2A 서버 인프라(컨트롤러, Executor, TaskStore 등) 자동 구성.
+- `AgentCommonAutoConfiguration` — 조건 없이 항상 활성화. PingController (`GET /ping`) 등록.
 
 ## Docker 빌드
 
@@ -151,16 +161,16 @@ amazon-bedrock-agentcore-spring-ai-a2a-samples/
 ```bash
 # host-agent (AgentCore 배포 → ARM64 필수)
 docker buildx build --platform linux/arm64 \
-  -f agents/host-agent/Dockerfile \
+  -f samples/host-agent/Dockerfile \
   -t host-agent:arm64 --load .
 
 # 다운스트림 에이전트 (amd64)
 docker buildx build --platform linux/amd64 \
-  -f agents/order-agent/Dockerfile    -t order-agent:latest    --load .
+  -f samples/order-agent/Dockerfile    -t order-agent:latest    --load .
 docker buildx build --platform linux/amd64 \
-  -f agents/delivery-agent/Dockerfile -t delivery-agent:latest --load .
+  -f samples/delivery-agent/Dockerfile -t delivery-agent:latest --load .
 docker buildx build --platform linux/amd64 \
-  -f agents/payment-agent/Dockerfile  -t payment-agent:latest  --load .
+  -f samples/payment-agent/Dockerfile  -t payment-agent:latest  --load .
 ```
 
 ## 의존성 버전 (루트 build.gradle.kts extra)

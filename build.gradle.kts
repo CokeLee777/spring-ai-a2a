@@ -69,3 +69,15 @@ subprojects {
             .addStringOption("Xdoclint:none", "-quiet")
     }
 }
+
+tasks.named("build") {
+    enabled = false
+}
+
+tasks.named("assemble") {
+    enabled = false
+}
+
+tasks.named("jar") {
+    enabled = false
+}

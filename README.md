@@ -1,85 +1,119 @@
-# Amazon Bedrock AgentCore Spring AI A2A Samples
+# Spring AI A2A
 
-Amazon Bedrock AgentCore Runtime과 Spring AI를 활용한 A2A(Agent-to-Agent) 프로토콜 기반 멀티 에이전트 오케스트레이션 샘플 프로젝트입니다.
+Spring AI 기반 [A2A(Agent-to-Agent) 프로토콜](https://google.github.io/A2A/) 에이전트를 쉽게 구현할 수 있는 라이브러리입니다.
+A2A 서버 인프라, 에이전트 공통 유틸리티, 대화 메모리 등을 Spring Boot Auto-configuration으로 제공하며,
+`samples/` 디렉토리에 Amazon Bedrock AgentCore Runtime 기반 멀티 에이전트 오케스트레이션 예제가 포함되어 있습니다.
 
-## 개요
+## 라이브러리 모듈
 
-이 프로젝트는 Amazon Bedrock AgentCore Runtime 위에서 동작하는 고객 지원 오케스트레이터를 구현합니다. 사용자의 주문/배송 문의를 LLM이 분석하여 적절한 다운스트림 A2A 에이전트를 Spring AI tool-calling으로 호출합니다.
+### spring-ai-a2a-server
 
-## 아키텍처
+A2A 프로토콜 서버 구현체입니다. Spring MVC 컨트롤러와 `DefaultAgentExecutor`를 제공합니다.
+
+| 컴포넌트 | 설명 |
+|---------|------|
+| `AgentCardController` | `GET /.well-known/agent-card.json` — AgentCard 제공 |
+| `MessageController` | A2A JSON-RPC 메시지 엔드포인트 |
+| `TaskController` | A2A Task API 엔드포인트 |
+| `DefaultAgentExecutor` | Task 생명주기 관리, `ChatClientExecutorHandler`에 실행 위임 |
+| `ChatClientExecutorHandler` | 에이전트 로직을 정의하는 함수형 인터페이스 (`RequestContext → String`) |
+
+### spring-ai-a2a-agent-common
+
+A2A 클라이언트 측 공유 유틸리티입니다.
+
+| 컴포넌트 | 설명 |
+|---------|------|
+| `A2ATransport` | 다운스트림 에이전트에 메시지를 전송하고 `TaskEvent` 응답을 동기 블로킹으로 수신 |
+| `LazyAgentCard` | AgentCard를 lazy 로딩·캐싱. `get()`은 null이면 재시도, `peek()`은 캐시만 반환 |
+| `TextExtractor` | `Task` / `Message`에서 텍스트를 추출하는 유틸리티 |
+
+### Auto-configurations
+
+| 모듈 | 활성화 조건 | 설명 |
+|------|-----------|------|
+| `spring-ai-a2a-autoconfigure-agent-common` | 항상 활성화 | `GET /ping` 헬스체크 엔드포인트 등록 |
+| `spring-ai-a2a-autoconfigure-server` | `ChatClient` 클래스가 클래스패스에 존재 | A2A 서버 인프라 자동 구성 (Virtual thread Executor, TaskStore, RequestHandler 등) |
+| `spring-ai-a2a-autoconfigure-model-chat-memory-repository-bedrock-agent-core` | `memory-id` 프로퍼티 설정 시 | `BedrockChatMemoryRepository` 등록. 미설정 시 Spring AI `InMemoryChatMemoryRepository` 폴백 |
+
+### Memory 구현체
+
+현재 Amazon Bedrock AgentCore 기반 구현체가 제공됩니다.
+
+**`spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core`**
+
+| 컴포넌트 | 설명 |
+|---------|------|
+| `BedrockChatMemoryRepository` | `ChatMemoryRepository` 구현체. `conversationId = "actorId:sessionId"` 복합키 사용 |
+| `AgentCoreEventToMessageConverter` | AgentCore Event → Spring AI `Message` 변환 |
+
+```yaml
+spring:
+  ai:
+    chat:
+      memory:
+        repository:
+          bedrock:
+            agent-core:
+              memory-id: ${BEDROCK_MEMORY_ID:}  # 미설정 시 InMemory 폴백
+              max-turns: 10
+```
+
+---
+
+## 샘플 (`samples/`)
+
+Amazon Bedrock AgentCore Runtime 위에서 동작하는 고객 지원 멀티 에이전트 오케스트레이션 예제입니다.
+
+### 아키텍처
 
 ```
 AgentCore Runtime
       │
       ▼ (POST /invocations)
 ┌─────────────────────────┐
-│       host-agent        │  ← Spring AI ChatClient (Bedrock Converse / Nova Lite)
+│       host-agent        │  ← Spring AI ChatClient (Bedrock Converse)
 │       (port: 8080)      │     RemoteAgentConnections (@Tool)
 └──┬──────────┬──────┬────┘
    │          │      │  (A2A JSON-RPC)
    ▼          ▼      ▼
 Order       Delivery  Payment
 Agent       Agent     Agent
-(9000)      (9000)    (9000)
+(9001)      (9002)    (9003)
 ```
 
-오케스트레이터의 AgentCard에는 다음 스킬이 등록되어 있습니다.
+| 샘플 | 포트 | 설명 |
+|------|------|------|
+| `host-agent` | 8080 | AgentCore Runtime 진입점 · 오케스트레이터 |
+| `order-agent` | 9001 | 주문 조회 · 취소 가능 여부 확인 (delivery/payment 에이전트 연동) |
+| `delivery-agent` | 9002 | 운송장번호 기반 배송 추적 |
+| `payment-agent` | 9003 | 결제/환불 상태 확인 |
 
-| 스킬 ID | 설명 |
-|--------|------|
-| `order_query` | 주문 목록 조회 |
-| `order_cancellability` | 주문 취소 가능 여부 판단 |
-| `delivery_tracking` | 운송장번호 기반 배송 추적 |
-
-## 모듈 구조
-
-| 모듈 | 포트   | 설명                                                                          |
-|------|------|-----------------------------------------------------------------------------|
-| `agent-common` | —    | `A2ATransport`, `LazyAgentCard`, `TextExtractor` 등 공유 유틸리티                  |
-| `spring-ai-a2a-server` | —    | A2A 서버 구현체 (AgentCard, Message 컨트롤러, Task 컨트롤러)                             |
-| `spring-ai-a2a-server-autoconfigure` | —    | A2A 서버/공통 인프라 자동 구성                                                        |
-| `host-agent` | 8080 | AgentCore Runtime 진입점 · 오케스트레이터                                             |
-| `order-agent` | 9001 | 주문 조회 · 취소 가능 여부 확인 A2A 에이전트 (delivery/payment 에이전트 호출 포함)                  |
-| `delivery-agent` | 9002 | 배송 추적 A2A 에이전트                                                              |
-| `payment-agent` | 9003 | 결제/환불 상태 확인 A2A 에이전트                                                        |
-
-## 전제 조건
+### 전제 조건
 
 - Java 25
 - AWS 자격증명 (Bedrock 접근 권한 필요)
-- Amazon Nova Pro 모델 접근 활성화 (`ap-northeast-2` 기본값)
+- Amazon Bedrock 모델 접근 활성화 (`ap-northeast-2` 기본값)
 
-## 환경변수
+### 환경변수
 
-| 변수 | 기본값                    | 설명 |
-|------|------------------------|------|
-| `BEDROCK_REGION` | `ap-northeast-2`       | AWS 리전 |
-| `BEDROCK_MODEL_ID` | `amazon.nova-lite-v1:0` | Bedrock Converse 모델 ID |
-| `ORDER_AGENT_URL` | agent별 기본값             | 주문 에이전트 URL |
-| `DELIVERY_AGENT_URL` | agent별 기본값             | 배송 에이전트 URL |
-| `PAYMENT_AGENT_URL` | agent별 기본값             | 결제 에이전트 URL |
-| `A2A_CLIENT_TIMEOUT_SECONDS` | `15`                   | 다운스트림 에이전트 호출 타임아웃(초) |
-| `AGENT_URL` | agent별 기본값             | 각 에이전트의 공개 베이스 URL (AgentCard.url) |
-| `AGENT_PORT` | agent별 기본값             | 각 에이전트 리슨 포트 |
-| `BEDROCK_MEMORY_MODE` | `none`                 | 메모리 사용 모드 (`none` / `short_term` / `long_term` / `both`) |
-| `BEDROCK_MEMORY_ID` | —                      | Bedrock AgentCore Memory 리소스 ID (mode가 `none`이 아닐 때 필수) |
-| `BEDROCK_MEMORY_STRATEGY_ID` | —                      | Memory Strategy ID (mode가 `long_term` / `both`일 때 필수) |
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `BEDROCK_REGION` | `ap-northeast-2` | AWS 리전 |
+| `BEDROCK_MODEL_ID` | — | Bedrock Converse 모델 ID |
+| `ORDER_AGENT_URL` | — | 주문 에이전트 URL |
+| `DELIVERY_AGENT_URL` | — | 배송 에이전트 URL |
+| `PAYMENT_AGENT_URL` | — | 결제 에이전트 URL |
+| `BEDROCK_MEMORY_ID` | — | Bedrock AgentCore Memory 리소스 ID (미설정 시 InMemory 폴백) |
 
-A2A 서버의 blocking 타임아웃은 `application.yml`에서 설정할 수 있으며, autoconfigure 기본값을 앱 설정으로 오버라이드할 수 있다.
+A2A 서버 blocking 타임아웃은 각 에이전트의 `application.yml`에서 오버라이드할 수 있습니다.
 
-| 설정 키 (application.yml) | 기본값 | 설명 |
-|---------------------------|--------|------|
+| 설정 키 | 기본값 | 설명 |
+|---------|--------|------|
 | `a2a.blocking.agent.timeout.seconds` | `30` | 에이전트 실행(LLM·툴 등) 완료 대기 최대 시간(초) |
 | `a2a.blocking.consumption.timeout.seconds` | `5` | 이벤트 소비/영속화 완료 대기 최대 시간(초) |
-| `aws.bedrock.agent-core.memory.mode` | `none` | 메모리 사용 모드 |
-| `aws.bedrock.agent-core.memory.memory-id` | — | Memory 리소스 ID |
-| `aws.bedrock.agent-core.memory.strategy-id` | — | Memory Strategy ID |
-| `aws.bedrock.agent-core.memory.short-term-max-turns` | `10` | 단기 기억 최대 대화 턴 수 |
-| `aws.bedrock.agent-core.memory.long-term-max-results` | `4` | 장기 기억 최대 검색 결과 수 |
 
-## 실행 방법
-
-### 로컬 (Gradle)
+### 로컬 실행
 
 로컬에서는 에이전트마다 다른 포트를 사용합니다. `local` 프로파일을 활성화하면 `application-local.yml`의 포트/URL 설정이 적용됩니다.
 
@@ -103,30 +137,30 @@ SPRING_PROFILES_ACTIVE=local ./gradlew :host-agent:bootRun
 
 > **IntelliJ 사용자**: Spring Boot 실행 설정의 **Active Profiles** 항목에 `local`을 입력하면 동일하게 적용됩니다.
 
-### Docker
+### Docker 빌드
 
 빌드 컨텍스트는 항상 **프로젝트 루트**입니다.
 
 ```bash
-# 다운스트림 에이전트
-docker buildx build --platform linux/arm64 \
-  -f agents/order-agent/Dockerfile -t order-agent:latest .
-docker buildx build --platform linux/arm64 \
-  -f agents/delivery-agent/Dockerfile -t delivery-agent:latest .
-docker buildx build --platform linux/arm64 \
-  -f agents/payment-agent/Dockerfile -t payment-agent:latest .
+# 다운스트림 에이전트 (amd64)
+docker buildx build --platform linux/amd64 \
+  -f samples/order-agent/Dockerfile -t order-agent:latest --load .
+docker buildx build --platform linux/amd64 \
+  -f samples/delivery-agent/Dockerfile -t delivery-agent:latest --load .
+docker buildx build --platform linux/amd64 \
+  -f samples/payment-agent/Dockerfile -t payment-agent:latest --load .
 
 # host-agent (AgentCore 배포 → ARM64 필수)
 docker buildx build --platform linux/arm64 \
-  -f agents/host-agent/Dockerfile -t host-agent:latest .
+  -f samples/host-agent/Dockerfile -t host-agent:arm64 --load .
 ```
 
-## 주요 기술 스택
+---
+
+## 기술 스택
 
 - **Java 25**, **Spring Boot 3.5.0**
-- **Spring AI 1.1.2** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse
-- **Amazon Bedrock** (Amazon Nova Pro) — LLM 추론
-- **A2A Java SDK 0.3.3.Final** (`io.github.a2asdk`) — Agent-to-Agent 프로토콜
-- **AWS SDK 2.42.x** — **Bedrock** AgentCore 등
-- **Amazon Bedrock AgentCore Runtime** — 세션 관리, 에이전트 엔트리포인트
-- **Virtual thread** — A2A 에이전트 실행은 `a2aTaskExecutor`(virtual thread)에서 수행되며, 동시 요청이 많을 때 스레드 풀 제한 없이 확장된다.
+- **Spring AI 1.1.3** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse
+- **A2A Java SDK 0.3.3.Final** — Agent-to-Agent 프로토콜
+- **AWS SDK 2.42.9** — Amazon Bedrock, Bedrock AgentCore
+- **Virtual thread** — A2A 에이전트 실행은 virtual thread 기반 `a2aTaskExecutor`에서 수행

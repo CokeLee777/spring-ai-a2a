@@ -1,23 +1,37 @@
-rootProject.name = "amazon-bedrock-agentcore-spring-ai-a2a-samples"
+rootProject.name = "spring-ai-a2a"
 
-include("spring-ai-a2a-server")
-include("spring-ai-a2a-server-autoconfigure")
-include("agent-common")
-include("host-agent")
-include("order-agent")
-include("delivery-agent")
-include("payment-agent")
-include("integration-tests")
-
-include("spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
-project(":spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
-	.projectDir = file("memory/repository/spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
+// Spring AI A2A AutoConfiguration
+include("spring-ai-a2a-autoconfigure-agent-common")
+project(":spring-ai-a2a-autoconfigure-agent-common")
+	.projectDir = file("auto-configurations/agent/common/spring-ai-a2a-autoconfigure-agent-common")
 
 include("spring-ai-a2a-autoconfigure-model-chat-memory-repository-bedrock-agent-core")
 project(":spring-ai-a2a-autoconfigure-model-chat-memory-repository-bedrock-agent-core")
 	.projectDir = file("auto-configurations/models/chat/memory/repository/spring-ai-a2a-autoconfigure-model-chat-memory-repository-bedrock-agent-core")
 
-project(":host-agent").projectDir = file("agents/host-agent")
-project(":order-agent").projectDir = file("agents/order-agent")
-project(":delivery-agent").projectDir = file("agents/delivery-agent")
-project(":payment-agent").projectDir = file("agents/payment-agent")
+include("spring-ai-a2a-autoconfigure-server")
+project(":spring-ai-a2a-autoconfigure-server")
+	.projectDir = file("auto-configurations/server/spring-ai-a2a-autoconfigure-server")
+
+// Spring AI A2A Memory
+include("spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
+project(":spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
+	.projectDir = file("memory/repository/spring-ai-a2a-model-chat-memory-repository-bedrock-agent-core")
+
+// Samples
+include("host-agent")
+project(":host-agent").projectDir = file("samples/host-agent")
+
+include("order-agent")
+project(":order-agent").projectDir = file("samples/order-agent")
+
+include("delivery-agent")
+project(":delivery-agent").projectDir = file("samples/delivery-agent")
+
+include("payment-agent")
+project(":payment-agent").projectDir = file("samples/payment-agent")
+
+// Spring AI A2A
+include("spring-ai-a2a-agent-common")
+include("spring-ai-a2a-integration-tests")
+include("spring-ai-a2a-server")
