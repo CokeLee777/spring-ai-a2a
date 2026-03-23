@@ -37,7 +37,7 @@ public class HostAgentApplication {
 	/**
 	 * Builds the routing {@link ChatClient} with downstream A2A agents registered as
 	 * tools.
-	 * @param builder the Spring AI auto-configured builder
+	 * @param builder the Spring AI autoconfigured builder
 	 * @param connections the downstream agent tool component
 	 * @return the configured {@link ChatClient}
 	 */

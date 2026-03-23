@@ -38,7 +38,7 @@ public class RemoteAgentConnections {
 	private final Map<String, LazyAgentCard> lazyCards = new ConcurrentHashMap<>();
 
 	/**
-	 * Initialises one {@link LazyAgentCard} per downstream agent configured in
+	 * Initializes one {@link LazyAgentCard} per downstream agent configured in
 	 * {@link RemoteAgentProperties}.
 	 * @param properties the remote agent connection properties
 	 */

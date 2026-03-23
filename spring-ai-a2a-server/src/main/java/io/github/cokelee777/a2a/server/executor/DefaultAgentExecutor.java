@@ -93,7 +93,7 @@ public class DefaultAgentExecutor implements AgentExecutor {
 		final Task task = context.getTask();
 
 		if (task.getStatus().state() == TaskState.CANCELED) {
-			// task already cancelled
+			// task already canceled
 			throw new TaskNotCancelableError();
 		}
 
