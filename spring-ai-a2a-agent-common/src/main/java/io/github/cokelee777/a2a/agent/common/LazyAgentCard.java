@@ -2,9 +2,9 @@ package io.github.cokelee777.a2a.agent.common;
 
 import io.a2a.A2A;
 import io.a2a.spec.AgentCard;
+import io.a2a.util.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.springframework.util.Assert;
 
 import java.net.URI;
 import java.util.Optional;
@@ -43,7 +43,7 @@ public class LazyAgentCard {
 	 * @param agentUrl the base URL of the downstream A2A agent
 	 */
 	public LazyAgentCard(String agentUrl) {
-		Assert.notNull(agentUrl, "agentUrl must not be null");
+		Assert.checkNotNullParam("agentUrl", agentUrl);
 
 		this.agentUrl = agentUrl;
 		tryFetchAgentCard();
