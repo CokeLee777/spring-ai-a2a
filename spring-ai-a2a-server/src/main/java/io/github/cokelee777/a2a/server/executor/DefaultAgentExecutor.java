@@ -47,7 +47,6 @@ import java.util.Objects;
  * Implementations only need to provide a {@link ChatClientExecutorHandler} that takes a
  * simple String and returns a String response. All A2A protocol complexity and task
  * management is handled by this base class.
- *
  */
 @Slf4j
 public class DefaultAgentExecutor implements AgentExecutor {
@@ -63,9 +62,6 @@ public class DefaultAgentExecutor implements AgentExecutor {
 
 	@Override
 	public void execute(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
-		Thread current = Thread.currentThread();
-		log.debug("Executing agent on thread {} (virtual={})", current.getName(), current.isVirtual());
-
 		TaskUpdater updater = new TaskUpdater(context, eventQueue);
 
 		try {
