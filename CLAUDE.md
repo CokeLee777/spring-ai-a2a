@@ -164,12 +164,12 @@ docker buildx build --platform linux/arm64 \
   -f samples/host-agent/Dockerfile \
   -t host-agent:arm64 --load .
 
-# 다운스트림 에이전트 (amd64)
-docker buildx build --platform linux/amd64 \
+# 다운스트림 에이전트 (arm64)
+docker buildx build --platform linux/arm64 \
   -f samples/order-agent/Dockerfile    -t order-agent:latest    --load .
-docker buildx build --platform linux/amd64 \
+docker buildx build --platform linux/arm64 \
   -f samples/delivery-agent/Dockerfile -t delivery-agent:latest --load .
-docker buildx build --platform linux/amd64 \
+docker buildx build --platform linux/arm64 \
   -f samples/payment-agent/Dockerfile  -t payment-agent:latest  --load .
 ```
 

@@ -142,12 +142,12 @@ SPRING_PROFILES_ACTIVE=local ./gradlew :host-agent:bootRun
 빌드 컨텍스트는 항상 **프로젝트 루트**입니다.
 
 ```bash
-# 다운스트림 에이전트 (amd64)
-docker buildx build --platform linux/amd64 \
+# 다운스트림 에이전트 (arm64)
+docker buildx build --platform linux/arm64 \
   -f samples/order-agent/Dockerfile -t order-agent:latest --load .
-docker buildx build --platform linux/amd64 \
+docker buildx build --platform linux/arm64 \
   -f samples/delivery-agent/Dockerfile -t delivery-agent:latest --load .
-docker buildx build --platform linux/amd64 \
+docker buildx build --platform linux/arm64 \
   -f samples/payment-agent/Dockerfile -t payment-agent:latest --load .
 
 # host-agent (AgentCore 배포 → ARM64 필수)
