@@ -5,7 +5,7 @@
 | 항목 | 내용 |
 |------|------|
 | 대상 모듈 | `samples/host-agent` |
-| 관련 컴포넌트 | `RemoteAgentConnections`, `DefaultInvocationService`, `A2ATransport` |
+| 관련 컴포넌트 | `RemoteAgentTools`, `DefaultInvocationService`, `A2ATransport` |
 | Spring AI 버전 | 1.1.3 (루트 `build.gradle.kts` 기준) |
 | 구현 설계 | [implementation-design-host-agent-parallel-batch-tool.md](./implementation-design-host-agent-parallel-batch-tool.md) |
 
@@ -14,7 +14,7 @@
 ### 1.1 현재 동작
 
 - 호스트는 `ChatClient` + `@Tool`로 다운스트림 A2A 에이전트를 호출한다.
-- `RemoteAgentConnections#sendMessage`가 단일 툴로 위임을 수행한다.
+- `RemoteAgentTools#sendMessage`가 단일 툴로 위임을 수행한다.
 - Spring AI `DefaultToolCallingManager`는 한 번의 어시스턴트 응답에 포함된 **여러 툴 호출을 순차(for 루프)로 실행**한다.
 
 ### 1.2 기대 효과
@@ -57,7 +57,7 @@
 ```mermaid
 sequenceDiagram
     participant LLM
-    participant Host as RemoteAgentConnections
+    participant Host as RemoteAgentTools
     participant VT as VirtualThreadExecutor
     participant A2A as A2ATransport
     participant Down as Downstream agents
@@ -160,7 +160,7 @@ response:
 
 ## 11. 구현 체크리스트
 
-- [ ] `RemoteAgentConnections`에 입력 record 및 `sendMessagesParallel` 추가
+- [ ] `RemoteAgentTools`에 입력 record 및 `sendMessagesParallel` 추가
 - [ ] virtual thread executor로 병렬 실행 + 순서 보존 집계
 - [ ] `DefaultInvocationService` 시스템 프롬프트 문단 추가
 - [ ] 단위 테스트 (호스트 모듈)

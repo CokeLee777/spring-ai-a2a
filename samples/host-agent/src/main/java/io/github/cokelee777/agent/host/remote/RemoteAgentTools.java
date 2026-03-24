@@ -24,8 +24,9 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * Spring AI {@code @Tool} component that routes host requests to downstream A2A agents
- * via JSON-RPC using {@link A2ATransport}.
+ * Spring {@link Component} that registers the host's downstream A2A agents as Spring AI
+ * {@link Tool}-annotated methods, routing orchestration calls over JSON-RPC via
+ * {@link A2ATransport}.
  *
  * <p>
  * Each configured URL ({@link RemoteAgentProperties}) gets one {@link LazyAgentCard}.
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class RemoteAgentConnections {
+public class RemoteAgentTools {
 
 	/**
 	 * Runs one downstream delegation per virtual thread for {@link #sendMessagesParallel}
@@ -73,7 +74,7 @@ public class RemoteAgentConnections {
 	 * {@link LazyAgentCard} constructor).
 	 * @param properties bound {@code remote.agents} map; must not be {@code null}
 	 */
-	public RemoteAgentConnections(RemoteAgentProperties properties) {
+	public RemoteAgentTools(RemoteAgentProperties properties) {
 		properties.agents().forEach((key, value) -> lazyCards.put(key, new LazyAgentCard(value.url())));
 	}
 

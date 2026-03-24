@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * {@code POST /invocations} (see
  * {@link io.github.cokelee777.agent.host.invocation.InvocationController}) and
  * coordinates downstream order, delivery, and payment agents via LLM tool-calling (see
- * {@link io.github.cokelee777.agent.host.remote.RemoteAgentConnections}).
+ * {@link io.github.cokelee777.agent.host.remote.RemoteAgentTools}).
  * </p>
  *
  * <p>

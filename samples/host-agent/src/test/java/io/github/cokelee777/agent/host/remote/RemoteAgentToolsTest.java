@@ -9,25 +9,26 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class RemoteAgentConnectionsTest {
+class RemoteAgentToolsTest {
 
-	private RemoteAgentConnections connections;
+	private RemoteAgentTools remoteAgentTools;
 
 	@BeforeEach
 	void setUp() {
-		connections = new RemoteAgentConnections(
+		remoteAgentTools = new RemoteAgentTools(
 				new RemoteAgentProperties(Map.of("dummy", new RemoteAgentProperties.Agent("http://127.0.0.1:9"))));
 	}
 
 	@Test
 	void sendMessagesParallel_null_rejectsWithIllegalArgument() {
-		assertThatThrownBy(() -> connections.sendMessagesParallel(null)).isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> remoteAgentTools.sendMessagesParallel(null))
+			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessageContaining("requests");
 	}
 
 	@Test
 	void sendMessagesParallel_empty_returnsEmptyAggregatedOutput() {
-		assertThat(connections.sendMessagesParallel(List.of())).isEmpty();
+		assertThat(remoteAgentTools.sendMessagesParallel(List.of())).isEmpty();
 	}
 
 }

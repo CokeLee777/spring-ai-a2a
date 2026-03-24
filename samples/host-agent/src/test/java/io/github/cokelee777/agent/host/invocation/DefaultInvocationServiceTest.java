@@ -1,6 +1,6 @@
 package io.github.cokelee777.agent.host.invocation;
 
-import io.github.cokelee777.agent.host.remote.RemoteAgentConnections;
+import io.github.cokelee777.agent.host.remote.RemoteAgentTools;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,13 +43,13 @@ class DefaultInvocationServiceTest {
 	private ChatClient.CallResponseSpec callSpec;
 
 	@Mock
-	private RemoteAgentConnections connections;
+	private RemoteAgentTools remoteAgentTools;
 
 	@Test
 	void invoke_loadsHistoryAndSavesNewMessagesAfterLlmCall() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of(new UserMessage("prev")));
 		setupChatClientChain("ok");
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 
 		service().invoke(new InvocationRequest("hi", "actor-1", "session-1"));
 
@@ -68,7 +68,7 @@ class DefaultInvocationServiceTest {
 	void invoke_savesOnlyTwoNewMessages() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
 		setupChatClientChain("reply");
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 
 		service().invoke(new InvocationRequest("hello", "a", "s"));
 
@@ -82,7 +82,7 @@ class DefaultInvocationServiceTest {
 	void invoke_nullActorId_generatesUuid() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
 		setupChatClientChain("hi");
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 
 		InvocationResponse response = service().invoke(new InvocationRequest("hello", null, null));
 
@@ -94,7 +94,7 @@ class DefaultInvocationServiceTest {
 	void invoke_providedIds_returnsSameIds() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
 		setupChatClientChain("reply");
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 
 		InvocationResponse response = service().invoke(new InvocationRequest("hi", "actor-1", "sess-42"));
 
@@ -106,7 +106,7 @@ class DefaultInvocationServiceTest {
 	void invoke_alwaysReturnsNonNullIds() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
 		setupChatClientChain("hi");
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 
 		InvocationResponse response = service().invoke(new InvocationRequest("hello", null, null));
 
@@ -117,7 +117,7 @@ class DefaultInvocationServiceTest {
 	@Test
 	void invoke_llmFailure_noMemorySaved() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
-		when(connections.getAgentDescriptions()).thenReturn("");
+		when(remoteAgentTools.getAgentDescriptions()).thenReturn("");
 		when(chatClient.prompt()).thenReturn(requestSpec);
 		when(requestSpec.system(anyString())).thenReturn(requestSpec);
 		when(requestSpec.messages(anyList())).thenReturn(requestSpec);
@@ -131,7 +131,7 @@ class DefaultInvocationServiceTest {
 	}
 
 	private DefaultInvocationService service() {
-		return new DefaultInvocationService(chatClient, connections, chatMemoryRepository);
+		return new DefaultInvocationService(chatClient, remoteAgentTools, chatMemoryRepository);
 	}
 
 	private void setupChatClientChain(String content) {

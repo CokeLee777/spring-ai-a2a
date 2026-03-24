@@ -1,7 +1,7 @@
 package io.github.cokelee777.a2a.integrationtests.samples;
 
 import io.github.cokelee777.agent.host.HostAgentApplication;
-import io.github.cokelee777.agent.host.remote.RemoteAgentConnections;
+import io.github.cokelee777.agent.host.remote.RemoteAgentTools;
 import io.github.cokelee777.agent.host.remote.RemoteAgentDelegationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * <p>
  * Starts the full Host Agent Spring Boot application with a mocked {@link ChatModel},
  * then verifies the {@code POST /invocations} endpoint, dynamic system prompt generation,
- * and {@link RemoteAgentConnections} routing behaviour.
+ * and {@link RemoteAgentTools} routing behaviour.
  * </p>
  */
 @SpringBootTest(classes = HostAgentApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
@@ -49,7 +49,7 @@ class HostAgentIntegrationTest {
 	ChatModel chatModel;
 
 	@Autowired
-	RemoteAgentConnections connections;
+	RemoteAgentTools remoteAgentTools;
 
 	@BeforeEach
 	void setupChatModelMock() {
@@ -110,12 +110,12 @@ class HostAgentIntegrationTest {
 	}
 
 	/**
-	 * Verifies {@link RemoteAgentConnections#sendMessage} returns a formatted error when
+	 * Verifies {@link RemoteAgentTools#sendMessage} returns a formatted error when
 	 * the requested agent name is not found.
 	 */
 	@Test
 	void sendMessage_unknownAgent_returnsErrorMessage() {
-		String result = connections.sendMessage(new RemoteAgentDelegationRequest("Unknown Agent", "some task"));
+		String result = remoteAgentTools.sendMessage(new RemoteAgentDelegationRequest("Unknown Agent", "some task"));
 
 		assertThat(result).contains("Agent 'Unknown Agent' not found");
 		assertThat(result).contains("Available agents:");

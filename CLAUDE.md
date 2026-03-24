@@ -64,7 +64,7 @@ spring-ai-a2a/
 │   │   │   ├── DefaultInvocationService     # ChatMemoryRepository, actorId:sessionId 복합키
 │   │   │   └── InvocationRequest/Response, InvocationService
 │   │   ├── remote/                          # 다운스트림 A2A 연동
-│   │   │   ├── RemoteAgentConnections       # @Tool sendMessage / sendMessagesParallel, LazyAgentCard 맵
+│   │   │   ├── RemoteAgentTools             # @Tool sendMessage / sendMessagesParallel, LazyAgentCard 맵
 │   │   │   ├── RemoteAgentProperties        # remote.agents URL 설정
 │   │   │   └── RemoteAgentDelegationRequest # 툴 파라미터 record
 │   │   └── HostAgentApplication             # 부트스트랩, @EnableConfigurationProperties(RemoteAgentProperties)
@@ -100,7 +100,7 @@ spring-ai-a2a/
 - `peek()` — 네트워크 호출 없이 현재 캐시 상태만 반환. 시스템 프롬프트 생성 등 정보 조회에 사용한다.
   (startup 시 `get()` 대신 `peek()`를 쓰지 않으면 에이전트 수 × 조회 횟수만큼 불필요한 WARN이 발생한다.)
 
-### RemoteAgentConnections (`host-agent` → `remote`)
+### RemoteAgentTools (`host-agent` → `remote`)
 
 - 패키지: `io.github.cokelee777.agent.host.remote`.
 - `@Tool` 메서드 `sendMessage(RemoteAgentDelegationRequest)` 로 단일 다운스트림 호출, 병렬 배치는 `sendMessagesParallel(List<RemoteAgentDelegationRequest>)`.
@@ -111,7 +111,7 @@ spring-ai-a2a/
 ### Invocation 경로 (`host-agent` → `invocation`)
 
 - `InvocationController` — AgentCore Runtime → `POST /invocations`.
-- `InvocationConfiguration` — orchestrator용 `ChatClient` 빈 (`RemoteAgentConnections`를 defaultTools로 등록, `SimpleLoggerAdvisor` 등).
+- `InvocationConfiguration` — orchestrator용 `ChatClient` 빈 (`RemoteAgentTools`를 defaultTools로 등록, `SimpleLoggerAdvisor` 등).
 - `DefaultInvocationService` — 시스템 프롬프트를 **매 요청마다** `connections.getAgentDescriptions()`로 동적 생성한다.
   빈 초기화 시 고정(static)하면 시작 후 lazy 로드된 에이전트가 프롬프트에 반영되지 않는다.
 

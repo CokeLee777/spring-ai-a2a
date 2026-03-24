@@ -35,9 +35,9 @@
 
 | 구분 | 경로 | 변경 |
 |------|------|------|
-| 도메인/툴 | `samples/host-agent/.../RemoteAgentConnections.java` | record(또는 별도 파일), 상수, executor, `sendMessagesParallel` |
+| 도메인/툴 | `samples/host-agent/.../RemoteAgentTools.java` | record(또는 별도 파일), 상수, executor, `sendMessagesParallel` |
 | 프롬프트 | `samples/host-agent/.../invocation/DefaultInvocationService.java` | `ROUTING_SYSTEM_PROMPT` 문단 추가 |
-| 테스트 | `samples/host-agent/src/test/java/.../RemoteAgentConnectionsTest.java` | **신규** 클래스 권장 |
+| 테스트 | `samples/host-agent/src/test/java/.../RemoteAgentToolsTest.java` | **신규** 클래스 권장 |
 | 의존성 | `samples/host-agent/build.gradle.kts` | 변경 없음(기존 JDK 25 + Spring AI) |
 
 다른 모듈(`spring-ai-a2a-agent-common`의 `A2ATransport` 등)은 **변경하지 않는다**.
@@ -48,7 +48,7 @@
 
 ### 3.1 `AgentDelegationRequest` (record)
 
-**위치**: `io.github.cokelee777.agent.host` 패키지, 파일 `AgentDelegationRequest.java` 또는 `RemoteAgentConnections.java`와 동일 패키지의 전용 파일.
+**위치**: `io.github.cokelee777.agent.host` 패키지, 파일 `AgentDelegationRequest.java` 또는 `RemoteAgentTools.java`와 동일 패키지의 전용 파일.
 
 **필드**:
 
@@ -63,9 +63,9 @@
 import org.springframework.ai.tool.annotation.ToolParam;
 
 /**
- * Request to delegate work to one downstream agent as part of {@link RemoteAgentConnections#sendMessagesParallel}.
+ * Request to delegate work to one downstream agent as part of {@link RemoteAgentTools#sendMessagesParallel}.
  *
- * @param agentName name of the downstream agent (same semantics as {@link RemoteAgentConnections#sendMessage})
+ * @param agentName name of the downstream agent (same semantics as {@link RemoteAgentTools#sendMessage})
  * @param task task description and context to send to that agent
  */
 public record AgentDelegationRequest(
@@ -84,7 +84,7 @@ public record AgentDelegationRequest(
 
 ---
 
-## 4. `RemoteAgentConnections` 구현 상세
+## 4. `RemoteAgentTools` 구현 상세
 
 ### 4.1 배치 크기
 
@@ -178,7 +178,7 @@ response:
 
 ---
 
-## 7. 테스트 설계 (`RemoteAgentConnectionsTest`)
+## 7. 테스트 설계 (`RemoteAgentToolsTest`)
 
 **프레임워크**: JUnit 5 + Mockito(기존 host-agent 테스트와 동일).
 
@@ -221,7 +221,7 @@ response:
 ## 10. 구현 체크리스트 (파일 단위)
 
 - [ ] `AgentDelegationRequest.java`: 레코드 컴포넌트마다 `@ToolParam`(한국어), 영문 Javadoc
-- [ ] `RemoteAgentConnections.java`: executor, `sendMessagesParallel`, private 헬퍼
+- [ ] `RemoteAgentTools.java`: executor, `sendMessagesParallel`, private 헬퍼
 - [ ] `DefaultInvocationService.java`: 프롬프트만
-- [ ] `RemoteAgentConnectionsTest.java`: T1–T2
+- [ ] `RemoteAgentToolsTest.java`: T1–T2
 - [ ] 개념 설계 문서 체크리스트와 본 문서 DoD 동기화
