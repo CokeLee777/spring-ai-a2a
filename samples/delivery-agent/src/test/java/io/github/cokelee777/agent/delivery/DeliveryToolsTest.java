@@ -1,12 +1,13 @@
 package io.github.cokelee777.agent.delivery;
 
+import io.github.cokelee777.agent.delivery.repository.InMemoryDeliveryRepository;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DeliveryToolsTest {
 
-	private final DeliveryTools tools = new DeliveryTools();
+	private final DeliveryTools tools = new DeliveryTools(new InMemoryDeliveryRepository());
 
 	@Test
 	void trackDelivery_track1001_returnsDelivered() {
@@ -24,6 +25,18 @@ class DeliveryToolsTest {
 	void trackDelivery_track1003_returnsNotShipped() {
 		String result = tools.trackDelivery("TRACK-1003");
 		assertThat(result).contains("배송준비중");
+	}
+
+	@Test
+	void trackDelivery_track2007_returnsPreparing() {
+		String result = tools.trackDelivery("TRACK-2007");
+		assertThat(result).contains("배송준비중").contains("출고 지시");
+	}
+
+	@Test
+	void trackDelivery_track2008_returnsInTransit() {
+		String result = tools.trackDelivery("TRACK-2008");
+		assertThat(result).contains("배송중").contains("부산");
 	}
 
 	@Test

@@ -1,11 +1,16 @@
 package io.github.cokelee777.agent.order;
 
+import io.github.cokelee777.agent.order.remote.DeliveryAgentClient;
+import io.github.cokelee777.agent.order.remote.PaymentAgentClient;
+import io.github.cokelee777.agent.order.repository.InMemoryOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OrderToolsTest {
@@ -20,15 +25,17 @@ class OrderToolsTest {
 	void setUp() {
 		deliveryAgentClient = mock(DeliveryAgentClient.class);
 		paymentAgentClient = mock(PaymentAgentClient.class);
-		tools = new OrderTools(deliveryAgentClient, paymentAgentClient);
+		tools = new OrderTools(new InMemoryOrderRepository(), deliveryAgentClient, paymentAgentClient);
 	}
 
 	@Test
 	void getOrderList_returnsAllOrdersWithBasicInfo() {
 		String result = tools.getOrderList();
 
-		assertThat(result).contains("ORD-1001").contains("ORD-1002").contains("ORD-1003");
-		assertThat(result).contains("TRACK-1001").contains("TRACK-1002").contains("TRACK-1003");
+		assertThat(result.lines().filter(line -> line.startsWith("- "))).hasSize(10);
+		assertThat(result).contains("ORD-1001").contains("ORD-1009").contains("ORD-1010");
+		assertThat(result).contains("TRACK-1001").contains("TRACK-2008");
+		assertThat(result).contains("미부여");
 		assertThat(result).doesNotContain("배송완료");
 	}
 
@@ -40,6 +47,8 @@ class OrderToolsTest {
 		String result = tools.checkOrderCancellability("ORD-1001");
 
 		assertThat(result).contains("ORD-1001").contains("배송완료").contains("결제완료");
+		verify(deliveryAgentClient).send(anyString());
+		verify(paymentAgentClient).send(anyString());
 	}
 
 	@Test
@@ -49,23 +58,49 @@ class OrderToolsTest {
 
 		String result = tools.checkOrderCancellability("ORD-1002");
 
-		assertThat(result).contains("ORD-1002").contains("배송중").contains("결제완료");
+		assertThat(result).contains("ORD-1002").contains("발송완료").contains("배송중").contains("결제완료");
+		verify(deliveryAgentClient).send(anyString());
+		verify(paymentAgentClient).send(anyString());
 	}
 
 	@Test
-	void checkOrderCancellability_ord1003_returnsOrderAndPaymentStatus() {
+	void checkOrderCancellability_ord1003_skipsDeliveryAgent_beforeShipmentPhase() {
 		when(paymentAgentClient.send(anyString())).thenReturn("ORD-1003 결제 상태: 결제완료 — 120,000원 (간편결제, 2026-03-12)");
 
 		String result = tools.checkOrderCancellability("ORD-1003");
 
-		assertThat(result).contains("ORD-1003").contains("결제완료");
+		assertThat(result).contains("ORD-1003").contains("주문완료").contains("[배송 조회 생략]").contains("결제완료");
+		verify(deliveryAgentClient, never()).send(anyString());
+		verify(paymentAgentClient).send(anyString());
 	}
 
 	@Test
-	void checkOrderCancellability_unknown_returnsNotFound() {
+	void checkOrderCancellability_ord1004_orderWaiting_skipsBothAgents() {
+		String result = tools.checkOrderCancellability("ORD-1004");
+
+		assertThat(result).contains("ORD-1004").contains("[배송 조회 생략]").contains("[결제 조회 생략]");
+		verify(deliveryAgentClient, never()).send(anyString());
+		verify(paymentAgentClient, never()).send(anyString());
+	}
+
+	@Test
+	void checkOrderCancellability_ord1009_cancelCompleted_skipsDelivery_callsPayment() {
+		when(paymentAgentClient.send(anyString())).thenReturn("ORD-1009 환불 완료");
+
+		String result = tools.checkOrderCancellability("ORD-1009");
+
+		assertThat(result).contains("ORD-1009").contains("취소완료").contains("[배송 조회 생략]").contains("환불");
+		verify(deliveryAgentClient, never()).send(anyString());
+		verify(paymentAgentClient).send(anyString());
+	}
+
+	@Test
+	void checkOrderCancellability_unknown_returnsNotFound_andSkipsAgents() {
 		String result = tools.checkOrderCancellability("ORD-9999");
 
-		assertThat(result).contains("찾을 수 없습니다");
+		assertThat(result).contains("찾을 수 없습니다").contains("[배송 조회 생략]").contains("[결제 조회 생략]");
+		verify(deliveryAgentClient, never()).send(anyString());
+		verify(paymentAgentClient, never()).send(anyString());
 	}
 
 }
