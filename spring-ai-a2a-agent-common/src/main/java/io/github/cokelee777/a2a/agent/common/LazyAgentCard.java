@@ -15,7 +15,9 @@ import java.util.Optional;
  * <p>
  * Attempts to fetch the {@link AgentCard} immediately on construction. If the fetch fails
  * (e.g., the downstream agent is not yet available), the URL is retained and
- * {@link #get()} retries the fetch on every subsequent call until it succeeds.
+ * {@link #get()} retries the fetch on every subsequent call until it succeeds. Concurrent
+ * {@link #get()} calls share a single in-flight fetch per instance (no duplicate HTTP
+ * requests for the same resolution attempt).
  * </p>
  *
  * <p>
@@ -46,7 +48,9 @@ public class LazyAgentCard {
 		Assert.checkNotNullParam("agentUrl", agentUrl);
 
 		this.agentUrl = agentUrl;
-		tryFetchAgentCard();
+		synchronized (this) {
+			tryFetchAgentCard();
+		}
 	}
 
 	/**
@@ -62,10 +66,17 @@ public class LazyAgentCard {
 	 * is still unreachable
 	 */
 	public Optional<AgentCard> get() {
-		if (card == null) {
-			tryFetchAgentCard();
+		AgentCard cachedCard = card;
+		if (cachedCard != null) {
+			return Optional.of(cachedCard);
 		}
-		return Optional.ofNullable(card);
+
+		synchronized (this) {
+			if (card == null) {
+				tryFetchAgentCard();
+			}
+			return Optional.ofNullable(card);
+		}
 	}
 
 	/**

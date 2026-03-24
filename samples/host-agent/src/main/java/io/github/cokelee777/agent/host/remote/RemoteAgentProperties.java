@@ -1,4 +1,4 @@
-package io.github.cokelee777.agent.host;
+package io.github.cokelee777.agent.host.remote;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.Assert;

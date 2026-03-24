@@ -1,9 +1,15 @@
 /**
- * AgentCore Runtime entry point and orchestrator agent.
+ * AgentCore Runtime entry point
+ * ({@link io.github.cokelee777.agent.host.HostAgentApplication}) for the orchestrator
+ * sample.
  *
  * <p>
- * Invokes downstream A2A agents via tool calls (e.g. InvocationsController,
- * RemoteAgentConnections).
+ * Feature code lives in subpackages:
+ * {@link io.github.cokelee777.agent.host.invocation.InvocationController} (and related
+ * invocation types) for {@code POST /invocations}, and
+ * {@link io.github.cokelee777.agent.host.remote.RemoteAgentConnections} for downstream
+ * A2A tools and configuration.
+ * </p>
  */
 @NullMarked
 package io.github.cokelee777.agent.host;

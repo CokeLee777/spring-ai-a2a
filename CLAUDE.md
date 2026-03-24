@@ -58,10 +58,16 @@ spring-ai-a2a/
 │       └── BedrockChatMemoryRepositoryConfig  # memoryId, maxTurns 설정 빈
 ├── samples/
 │   ├── host-agent/   (port: 8080)           # AgentCore Runtime 진입점 · 오케스트레이터
-│   │   ├── InvocationsController            # POST /invocations, 요청마다 동적 시스템 프롬프트 생성
-│   │   ├── RemoteAgentConnections           # 다운스트림 에이전트 호출 Tool (@Tool), LazyAgentCard 맵 관리
-│   │   ├── RemoteAgentProperties            # 다운스트림 에이전트 URL 설정
-│   │   └── DefaultInvocationService         # ChatMemoryRepository 주입, actorId:sessionId 복합키 사용
+│   │   ├── invocation/                      # POST /invocations, 오케스트레이션
+│   │   │   ├── InvocationController         # REST 엔드포인트
+│   │   │   ├── InvocationConfiguration      # orchestrator ChatClient @Bean (defaultTools + advisors)
+│   │   │   ├── DefaultInvocationService     # ChatMemoryRepository, actorId:sessionId 복합키
+│   │   │   └── InvocationRequest/Response, InvocationService
+│   │   ├── remote/                          # 다운스트림 A2A 연동
+│   │   │   ├── RemoteAgentConnections       # @Tool sendMessage / sendMessagesParallel, LazyAgentCard 맵
+│   │   │   ├── RemoteAgentProperties        # remote.agents URL 설정
+│   │   │   └── RemoteAgentDelegationRequest # 툴 파라미터 record
+│   │   └── HostAgentApplication             # 부트스트랩, @EnableConfigurationProperties(RemoteAgentProperties)
 │   ├── order-agent/  (port: 9001)           # 주문 조회 · 취소 가능 여부 확인 A2A 에이전트
 │   │   ├── OrderTools                       # getOrderList, checkOrderCancellability
 │   │   ├── DeliveryAgentClient              # delivery-agent 호출 클라이언트 (LazyAgentCard)
@@ -94,17 +100,19 @@ spring-ai-a2a/
 - `peek()` — 네트워크 호출 없이 현재 캐시 상태만 반환. 시스템 프롬프트 생성 등 정보 조회에 사용한다.
   (startup 시 `get()` 대신 `peek()`를 쓰지 않으면 에이전트 수 × 조회 횟수만큼 불필요한 WARN이 발생한다.)
 
-### RemoteAgentConnections (host-agent)
+### RemoteAgentConnections (`host-agent` → `remote`)
 
-- `@Tool` 메서드 `sendMessage(agentName, task)` 하나로 모든 다운스트림 에이전트 호출을 처리한다.
+- 패키지: `io.github.cokelee777.agent.host.remote`.
+- `@Tool` 메서드 `sendMessage(RemoteAgentDelegationRequest)` 로 단일 다운스트림 호출, 병렬 배치는 `sendMessagesParallel(List<RemoteAgentDelegationRequest>)`.
 - 각 파라미터에 `@ToolParam(description = "...")` 을 달아 LLM이 올바른 값을 추론하도록 돕는다.
 - 내부적으로 `Map<String, LazyAgentCard>` (config key → LazyAgentCard)를 관리한다.
-  `sendMessage` 는 card name으로 조회(`get()` 경유), `getAgentDescriptions`/`getAgentNames` 는 `peek()` 경유.
-- 로컬 실행 시 헤더가 없으면 UUID로 폴백하여 개발/테스트 편의를 보장한다.
+  `sendMessage` 는 card name으로 조회(`get()` 경유), `getAgentDescriptions` 는 `peek()` 경유.
 
-### InvocationsController (host-agent)
+### Invocation 경로 (`host-agent` → `invocation`)
 
-- 시스템 프롬프트를 **매 요청마다** `connections.getAgentDescriptions()`로 동적 생성한다.
+- `InvocationController` — AgentCore Runtime → `POST /invocations`.
+- `InvocationConfiguration` — orchestrator용 `ChatClient` 빈 (`RemoteAgentConnections`를 defaultTools로 등록, `SimpleLoggerAdvisor` 등).
+- `DefaultInvocationService` — 시스템 프롬프트를 **매 요청마다** `connections.getAgentDescriptions()`로 동적 생성한다.
   빈 초기화 시 고정(static)하면 시작 후 lazy 로드된 에이전트가 프롬프트에 반영되지 않는다.
 
 ### Spring AI Tool Calling

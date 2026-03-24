@@ -1,8 +1,5 @@
-package io.github.cokelee777.agent.host;
+package io.github.cokelee777.agent.host.invocation;
 
-import io.github.cokelee777.agent.host.invocation.InvocationRequest;
-import io.github.cokelee777.agent.host.invocation.InvocationResponse;
-import io.github.cokelee777.agent.host.invocation.InvocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

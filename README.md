@@ -89,6 +89,12 @@ Agent       Agent     Agent
 | `delivery-agent` | 9002 | 운송장번호 기반 배송 추적 |
 | `payment-agent` | 9003 | 결제/환불 상태 확인 |
 
+**host-agent 패키지 구조** (`io.github.cokelee777.agent.host` 기준)
+
+- `invocation` — `POST /invocations` (`InvocationController`), orchestrator `ChatClient` 빈 (`InvocationConfiguration`), `InvocationService` / `DefaultInvocationService` 및 요청·응답 타입
+- `remote` — 다운스트림 A2A URL 설정 (`RemoteAgentProperties`), 위임 DTO (`RemoteAgentDelegationRequest`), Spring AI `@Tool` (`RemoteAgentConnections`)
+- 루트 — `HostAgentApplication` (부트스트랩)
+
 ### 전제 조건
 
 - Java 25

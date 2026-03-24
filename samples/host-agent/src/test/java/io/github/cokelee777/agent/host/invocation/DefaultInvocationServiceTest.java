@@ -1,6 +1,6 @@
 package io.github.cokelee777.agent.host.invocation;
 
-import io.github.cokelee777.agent.host.RemoteAgentConnections;
+import io.github.cokelee777.agent.host.remote.RemoteAgentConnections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

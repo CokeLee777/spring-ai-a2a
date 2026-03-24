@@ -1,7 +1,8 @@
 package io.github.cokelee777.a2a.integrationtests.samples;
 
 import io.github.cokelee777.agent.host.HostAgentApplication;
-import io.github.cokelee777.agent.host.RemoteAgentConnections;
+import io.github.cokelee777.agent.host.remote.RemoteAgentConnections;
+import io.github.cokelee777.agent.host.remote.RemoteAgentDelegationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -105,6 +106,7 @@ class HostAgentIntegrationTest {
 
 		assertThat(systemContent).contains("에이전트 라우터");
 		assertThat(systemContent).contains("sendMessage");
+		assertThat(systemContent).contains("sendMessagesParallel");
 	}
 
 	/**
@@ -113,7 +115,7 @@ class HostAgentIntegrationTest {
 	 */
 	@Test
 	void sendMessage_unknownAgent_returnsErrorMessage() {
-		String result = connections.sendMessage("Unknown Agent", "some task");
+		String result = connections.sendMessage(new RemoteAgentDelegationRequest("Unknown Agent", "some task"));
 
 		assertThat(result).contains("Agent 'Unknown Agent' not found");
 		assertThat(result).contains("Available agents:");
