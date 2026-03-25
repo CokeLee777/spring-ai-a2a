@@ -9,7 +9,7 @@
 #
 # Build (from project root — ARM64 for AgentCore):
 #   docker buildx build --platform linux/arm64 \
-#     -f agents/host-agent/Dockerfile \
+#     -f samples/host-agent/Dockerfile \
 #     -t host-agent:arm64 --load .
 #
 # Runtime env (set in AgentCore / ECS task definition):
@@ -22,12 +22,8 @@ FROM eclipse-temurin:25-jdk-jammy AS builder
 
 WORKDIR /app
 
-COPY gradlew settings.gradle.kts build.gradle.kts ./
-COPY gradle ./gradle
-COPY spring-ai-a2a-agent-common ./spring-ai-a2a-agent-common
-COPY spring-ai-a2a-server ./spring-ai-a2a-server
-COPY auto-configurations/agent/common/spring-ai-a2a-autoconfigure-agent-common ./auto-configurations/agent/common/spring-ai-a2a-autoconfigure-agent-common
-COPY samples/host-agent ./samples/host-agent
+# Full tree: settings.gradle.kts includes all subprojects; starter/memory modules must be present.
+COPY . .
 
 RUN chmod +x gradlew \
 	&& ./gradlew :host-agent:bootJar --no-daemon -x test \

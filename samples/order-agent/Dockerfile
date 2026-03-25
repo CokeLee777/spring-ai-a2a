@@ -2,7 +2,7 @@
 #
 # Build (from project root):
 #   docker buildx build --platform linux/amd64 \
-#     -f agents/order-agent/Dockerfile \
+#     -f samples/order-agent/Dockerfile \
 #     -t order-agent:latest --load .
 #
 # Runtime env:
@@ -15,13 +15,7 @@ FROM eclipse-temurin:25-jdk-jammy AS builder
 
 WORKDIR /app
 
-COPY gradlew settings.gradle.kts build.gradle.kts ./
-COPY gradle ./gradle
-COPY spring-ai-a2a-agent-common ./spring-ai-a2a-agent-common
-COPY spring-ai-a2a-server ./spring-ai-a2a-server
-COPY auto-configurations/server/spring-ai-a2a-autoconfigure-server ./auto-configurations/server/spring-ai-a2a-autoconfigure-server
-COPY auto-configurations/agent/common/spring-ai-a2a-autoconfigure-agent-common ./auto-configurations/agent/common/spring-ai-a2a-autoconfigure-agent-common
-COPY samples/order-agent ./samples/order-agent
+COPY . .
 
 RUN chmod +x gradlew \
 	&& ./gradlew :order-agent:bootJar --no-daemon -x test \

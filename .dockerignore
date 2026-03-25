@@ -1,0 +1,35 @@
+# Version control / IDE
+.git
+.gitignore
+.gitattributes
+.github
+.cursor
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.sdkmanrc
+
+# Gradle caches and outputs (rebuilt in container)
+**/.gradle/
+**/build/
+**/out/
+bin/
+
+# Docs (not needed to compile)
+*.md
+CLAUDE.md
+AGENTS.md
+
+# OS / secrets
+.DS_Store
+**/.DS_Store
+.env
+.env.*
+
+# Tests (optional trim; remove next line if compile needs test resources)
+**/src/test/
+
+# Windows wrapper not used in Linux image
+gradlew.bat
