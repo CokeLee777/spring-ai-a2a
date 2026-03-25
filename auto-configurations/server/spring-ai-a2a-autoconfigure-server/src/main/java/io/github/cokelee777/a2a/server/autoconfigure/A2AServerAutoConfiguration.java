@@ -41,6 +41,13 @@ import java.util.concurrent.ThreadFactory;
  * Automatically enables A2A protocol support when Spring AI ChatClient is on the
  * classpath. Provides A2A controllers, agent card metadata, and task API support.
  *
+ * <p>
+ * Default beans use {@link ConditionalOnMissingBean}: register your own {@code @Bean} of
+ * the same type with a different implementation class to replace the in-memory defaults
+ * (for example a persistent {@link io.a2a.server.tasks.TaskStore}). For the async
+ * executor, register a bean named {@code a2aTaskExecutor} to override the virtual-thread
+ * default.
+ *
  */
 @Slf4j
 @AutoConfiguration
@@ -105,7 +112,6 @@ public class A2AServerAutoConfiguration {
 	@ConditionalOnMissingBean
 	public TaskStore taskStore() {
 		logAutoConfig("InMemoryTaskStore", "task management");
-		// TODO: Should implements Custom Memory Task Store
 		return new InMemoryTaskStore();
 	}
 
@@ -116,7 +122,6 @@ public class A2AServerAutoConfiguration {
 	@ConditionalOnMissingBean
 	public QueueManager queueManager(TaskStore taskStore) {
 		logAutoConfig("InMemoryQueueManager", "event queue management");
-		// TODO: Should implements Custom QueueManager
 		return new InMemoryQueueManager((TaskStateProvider) taskStore);
 	}
 
@@ -127,7 +132,6 @@ public class A2AServerAutoConfiguration {
 	@ConditionalOnMissingBean
 	public PushNotificationConfigStore pushNotificationConfigStore() {
 		logAutoConfig("InMemoryPushNotificationConfigStore", "push notification config store");
-		// TODO: Should implements Custom PushNotificationConfigStore
 		return new InMemoryPushNotificationConfigStore();
 	}
 
@@ -138,7 +142,6 @@ public class A2AServerAutoConfiguration {
 	@ConditionalOnMissingBean
 	public PushNotificationSender pushNotificationSender(PushNotificationConfigStore pushNotificationConfigStore) {
 		logAutoConfig("BasePushNotificationSender", "push notification sender");
-		// TODO: Should implements Custom PushNotificationSender
 		return new BasePushNotificationSender(pushNotificationConfigStore);
 	}
 
