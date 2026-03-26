@@ -73,7 +73,7 @@ public class DefaultAgentExecutor implements AgentExecutor {
 			// Call user's method with clean string parameter
 			String response = this.chatClientExecutorHandler.execute(this.chatClient, context);
 
-			log.debug("AI Response: {}", response);
+			log.debug("Response: {}", response);
 
 			response = Objects.requireNonNullElse(response, "");
 

@@ -31,10 +31,9 @@ public class InvocationController {
 	 */
 	@PostMapping(path = "/invocations")
 	public InvocationResponse invoke(@Valid @RequestBody InvocationRequest request) {
-		log.info("Received: prompt={} actorId={} sessionId={}", request.prompt(), request.actorId(),
-				request.sessionId());
+		log.info("Received: prompt={}", request.prompt());
 		InvocationResponse response = invocationService.invoke(request);
-		log.info("Response: {}", response.content());
+		log.info("Response: content={}", response.content());
 		return response;
 	}
 
