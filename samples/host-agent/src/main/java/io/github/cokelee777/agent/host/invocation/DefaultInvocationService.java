@@ -90,7 +90,6 @@ public class DefaultInvocationService implements InvocationService {
 
 		chatMemoryRepository.saveAll(conversationId, List.of(new UserMessage(prompt), new AssistantMessage(content)));
 
-		log.info("session={} prompt={} response={}", conversationId, prompt, content);
 		return new InvocationResponse(content, sessionId, actorId);
 	}
 
