@@ -1,15 +1,13 @@
 package io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore.autoconfigure;
 
+import io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore.BedrockAgentCoreChatMemoryConfig;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore.BedrockAgentCoreChatMemoryConfig;
 
 /**
  * Configuration properties for
  * {@link BedrockAgentCoreChatMemoryRepositoryAutoConfiguration}.
  *
- * @author Chaemin Lee
  */
 @ConfigurationProperties(BedrockAgentCoreChatMemoryRepositoryProperties.CONFIG_PREFIX)
 public class BedrockAgentCoreChatMemoryRepositoryProperties {

@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 /**
  * Configuration for {@link BedrockAgentCoreChatMemoryRepository}.
  *
- * @author Chaemin Lee
  * @see BedrockAgentCoreChatMemoryRepository
  */
 public final class BedrockAgentCoreChatMemoryConfig {

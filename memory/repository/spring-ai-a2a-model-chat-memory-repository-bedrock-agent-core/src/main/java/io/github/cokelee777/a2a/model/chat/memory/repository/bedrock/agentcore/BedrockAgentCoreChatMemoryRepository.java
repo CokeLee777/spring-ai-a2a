@@ -1,12 +1,5 @@
 package io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore;
 
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +26,13 @@ import software.amazon.awssdk.services.bedrockagentcore.model.Role;
 import software.amazon.awssdk.services.bedrockagentcore.model.SearchCriteria;
 import software.amazon.awssdk.services.bedrockagentcore.model.SessionSummary;
 
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
 /**
  * An implementation of {@link AdvancedBedrockAgentCoreChatMemoryRepository} backed by
  * Amazon Bedrock AgentCore Memory.
@@ -48,7 +48,6 @@ import software.amazon.awssdk.services.bedrockagentcore.model.SessionSummary;
  * {@link BedrockAgentCoreChatMemoryConfig}.
  * </p>
  *
- * @author Chaemin Lee
  * @see AdvancedBedrockAgentCoreChatMemoryRepository
  * @see BedrockAgentCoreChatMemoryConfig
  */

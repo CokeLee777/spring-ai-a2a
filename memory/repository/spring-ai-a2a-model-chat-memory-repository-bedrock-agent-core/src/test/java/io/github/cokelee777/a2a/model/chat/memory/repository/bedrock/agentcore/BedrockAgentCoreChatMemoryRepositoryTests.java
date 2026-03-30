@@ -1,14 +1,14 @@
 package io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore;
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 import software.amazon.awssdk.services.bedrockagentcore.model.Content;
@@ -34,9 +34,7 @@ import software.amazon.awssdk.services.bedrockagentcore.paginators.ListMemoryRec
 import software.amazon.awssdk.services.bedrockagentcore.paginators.ListSessionsIterable;
 import software.amazon.awssdk.services.bedrockagentcore.paginators.RetrieveMemoryRecordsIterable;
 
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,7 +48,6 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link BedrockAgentCoreChatMemoryRepository}.
  *
- * @author Chaemin Lee
  */
 @ExtendWith(MockitoExtension.class)
 class BedrockAgentCoreChatMemoryRepositoryTests {

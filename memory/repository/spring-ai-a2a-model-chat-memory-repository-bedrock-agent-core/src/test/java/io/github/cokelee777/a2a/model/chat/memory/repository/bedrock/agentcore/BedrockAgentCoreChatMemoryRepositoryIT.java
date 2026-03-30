@@ -1,14 +1,14 @@
 package io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
@@ -18,11 +18,10 @@ import software.amazon.awssdk.services.bedrockagentcore.model.MemoryContent;
 import software.amazon.awssdk.services.bedrockagentcore.model.MemoryRecordCreateInput;
 import software.amazon.awssdk.services.bedrockagentcore.model.MemoryRecordSummary;
 
-import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.UserMessage;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -39,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * long-term memory tests; tests requiring this are skipped if not set</li>
  * </ul>
  *
- * @author Chaemin Lee
  */
 @RequiresAwsCredentials
 class BedrockAgentCoreChatMemoryRepositoryIT {

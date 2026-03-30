@@ -1,10 +1,10 @@
 package io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore;
 
-import java.util.List;
-
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import software.amazon.awssdk.services.bedrockagentcore.model.MemoryRecordSummary;
+
+import java.util.List;
 
 /**
  * Bedrock AgentCore-specific extended interface for {@link ChatMemoryRepository} that
@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.bedrockagentcore.model.MemoryRecordSummar
  * {@code actorId}. The {@link ChatMemoryRepository} methods delegate to those overloads
  * using {@link BedrockAgentCoreChatMemoryConfig#getActorId()}.
  *
- * @author Chaemin Lee
  * @see BedrockAgentCoreChatMemoryRepository
  * @see BedrockAgentCoreChatMemoryConfig
  */

@@ -27,7 +27,6 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
  * ({@code spring.ai.bedrock.aws.*}).
  * </p>
  *
- * @author Chaemin Lee
  */
 @AutoConfiguration(before = ChatMemoryAutoConfiguration.class)
 @ConditionalOnClass({ BedrockAgentCoreChatMemoryRepository.class, BedrockAgentCoreClient.class })
