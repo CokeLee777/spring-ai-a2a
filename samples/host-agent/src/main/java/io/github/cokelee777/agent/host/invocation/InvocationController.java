@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>
  * Amazon Bedrock AgentCore Runtime forwards user messages to {@code POST /invocations}.
- * This controller delegates each request to {@link InvocationService}, which manages
- * memory context and LLM routing.
+ * This controller delegates to {@link InvocationService} for memory context and LLM
+ * routing.
  * </p>
  */
 @Slf4j
@@ -26,8 +26,8 @@ public class InvocationController {
 	/**
 	 * Handles invocation requests from Amazon Bedrock AgentCore Runtime.
 	 * @param request the invocation request containing the user prompt and optional
-	 * {@code conversationId}
-	 * @return the invocation response including assistant content and
+	 * {@code actorId} and {@code conversationId}
+	 * @return the invocation response including assistant content, {@code actorId}, and
 	 * {@code conversationId}
 	 */
 	@PostMapping(path = "/invocations")

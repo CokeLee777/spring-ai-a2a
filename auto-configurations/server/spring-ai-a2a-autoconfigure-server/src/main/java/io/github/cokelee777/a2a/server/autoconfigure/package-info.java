@@ -1,9 +1,14 @@
 /**
- * Spring Boot auto-configuration for the A2A server and common components.
+ * Spring Boot auto-configuration for the A2A server.
  *
  * <p>
- * Registers A2A server endpoints when an {@code AgentExecutor} bean is present, and
- * Ping/AgentCard controllers when an {@code AgentCard} bean is present.
+ * {@link io.github.cokelee777.a2a.server.autoconfigure.A2AServerAutoConfiguration}
+ * registers server infrastructure when
+ * {@link org.springframework.ai.chat.client.ChatClient} is on the classpath and
+ * {@code spring.ai.a2a.server.enabled} is true (the default). The application must
+ * provide an {@link io.a2a.spec.AgentCard} bean. Ping and remote-agent registry are
+ * provided by the {@code spring-ai-a2a-autoconfigure-agent-common} module.
+ * </p>
  */
 @NullMarked
 package io.github.cokelee777.a2a.server.autoconfigure;

@@ -50,7 +50,7 @@ class DefaultInvocationServiceTest {
 		setupChatClientChain("ok");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		service().invoke(new InvocationRequest("hi", "session-1"));
+		service().invoke(new InvocationRequest("hi", null, "session-1"));
 
 		InOrder order = inOrder(chatClient, chatMemoryRepository);
 		order.verify(chatClient).prompt();
@@ -70,7 +70,7 @@ class DefaultInvocationServiceTest {
 		setupChatClientChain("reply");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		service().invoke(new InvocationRequest("hello", "s"));
+		service().invoke(new InvocationRequest("hello", null, "s"));
 
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<List<Message>> captor = ArgumentCaptor.forClass(List.class);
@@ -87,9 +87,10 @@ class DefaultInvocationServiceTest {
 		setupChatClientChain("hi");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		InvocationResponse response = service().invoke(new InvocationRequest("hello", null));
+		InvocationResponse response = service().invoke(new InvocationRequest("hello", null, null));
 
 		assertThat(response.conversationId()).isNotBlank();
+		assertThat(response.actorId()).isNotBlank();
 	}
 
 	@Test
@@ -98,20 +99,21 @@ class DefaultInvocationServiceTest {
 		setupChatClientChain("reply");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		InvocationResponse response = service().invoke(new InvocationRequest("hi", "sess-42"));
+		InvocationResponse response = service().invoke(new InvocationRequest("hi", null, "sess-42"));
 
 		assertThat(response.conversationId()).isEqualTo("sess-42");
 	}
 
 	@Test
-	void invoke_alwaysReturnsNonNullConversationId() {
+	void invoke_alwaysReturnsNonNullIds() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
 		setupChatClientChain("hi");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		InvocationResponse response = service().invoke(new InvocationRequest("hello", null));
+		InvocationResponse response = service().invoke(new InvocationRequest("hello", null, null));
 
 		assertThat(response.conversationId()).isNotNull();
+		assertThat(response.actorId()).isNotNull();
 	}
 
 	@Test
@@ -124,7 +126,7 @@ class DefaultInvocationServiceTest {
 		when(requestSpec.user(anyString())).thenReturn(requestSpec);
 		when(requestSpec.call()).thenThrow(new RuntimeException("LLM error"));
 
-		assertThatThrownBy(() -> service().invoke(new InvocationRequest("hi", "session-1")))
+		assertThatThrownBy(() -> service().invoke(new InvocationRequest("hi", null, "session-1")))
 			.isInstanceOf(RuntimeException.class);
 
 		verify(chatMemoryRepository, never()).saveAll(anyString(), any());

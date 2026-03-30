@@ -1,8 +1,8 @@
 package io.github.cokelee777.agent.host.invocation;
 
 import io.github.cokelee777.a2a.agent.common.autoconfigure.RemoteAgentCardRegistry;
+import io.github.cokelee777.a2a.model.chat.memory.repository.bedrock.agentcore.AdvancedBedrockAgentCoreChatMemoryRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -19,16 +19,22 @@ import java.util.Objects;
  * Default implementation of {@link InvocationService}.
  *
  * <p>
+ * When {@link ChatMemoryRepository} is an
+ * {@link AdvancedBedrockAgentCoreChatMemoryRepository}, load and save use actor-scoped
+ * overloads; otherwise the base {@link ChatMemoryRepository} methods are used (e.g.
+ * in-memory tests).
+ * </p>
+ *
+ * <p>
  * Execution order per request:
  * <ol>
- * <li>Use {@link InvocationRequest#conversationId()} as {@link ChatMemoryRepository}
- * {@code conversationId} (UUID assigned in the request record when omitted).</li>
- * <li>Load history from {@link ChatMemoryRepository}.</li>
+ * <li>Resolve {@link InvocationRequest#actorId()} and
+ * {@link InvocationRequest#conversationId()} (UUIDs assigned in the request record when
+ * omitted).</li>
+ * <li>Load history (actor-scoped when the repository supports it).</li>
  * <li>Call the LLM via {@link ChatClient} (system prompt includes downstream agents from
  * {@link RemoteAgentCardRegistry#getAgentDescriptions()}).</li>
- * <li>Persist full message list (prior history plus new user and assistant turns)
- * <em>after</em> the LLM call succeeds, matching replace-style repositories such as
- * {@code BedrockAgentCoreChatMemoryRepository}.</li>
+ * <li>Persist the full message list <em>after</em> the LLM call succeeds.</li>
  * </ol>
  * </p>
  *
@@ -38,7 +44,6 @@ import java.util.Objects;
  * per call behave correctly.
  * </p>
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultInvocationService implements InvocationService {
@@ -77,9 +82,16 @@ public class DefaultInvocationService implements InvocationService {
 		Assert.notNull(request, "request must not be null");
 
 		String prompt = request.prompt();
+		String actorId = request.actorId();
 		String conversationId = request.conversationId();
 
-		List<Message> history = chatMemoryRepository.findByConversationId(conversationId);
+		List<Message> history;
+		if (this.chatMemoryRepository instanceof AdvancedBedrockAgentCoreChatMemoryRepository advanced) {
+			history = advanced.findByConversationId(actorId, conversationId);
+		}
+		else {
+			history = this.chatMemoryRepository.findByConversationId(conversationId);
+		}
 
 		String response = chatClient.prompt()
 			.system(ROUTING_SYSTEM_PROMPT.formatted(remoteAgentCardRegistry.getAgentDescriptions()))
@@ -89,12 +101,17 @@ public class DefaultInvocationService implements InvocationService {
 			.content();
 		String content = Objects.requireNonNullElse(response, "");
 
-		List<Message> toSave = new ArrayList<>(history);
-		toSave.add(new UserMessage(prompt));
-		toSave.add(new AssistantMessage(content));
-		chatMemoryRepository.saveAll(conversationId, toSave);
+		List<Message> messages = new ArrayList<>(history);
+		messages.add(new UserMessage(prompt));
+		messages.add(new AssistantMessage(content));
+		if (this.chatMemoryRepository instanceof AdvancedBedrockAgentCoreChatMemoryRepository advanced) {
+			advanced.saveAll(actorId, conversationId, messages);
+		}
+		else {
+			this.chatMemoryRepository.saveAll(conversationId, messages);
+		}
 
-		return new InvocationResponse(content, conversationId);
+		return new InvocationResponse(content, actorId, conversationId);
 	}
 
 }

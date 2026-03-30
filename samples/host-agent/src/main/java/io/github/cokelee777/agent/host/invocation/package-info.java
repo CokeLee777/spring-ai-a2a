@@ -1,7 +1,9 @@
 /**
  * Invocation path for {@code POST /invocations}: REST entry, Spring configuration for the
  * orchestrator {@link org.springframework.ai.chat.client.ChatClient}, and
- * {@link io.github.cokelee777.agent.host.invocation.InvocationService} orchestration.
+ * {@link io.github.cokelee777.agent.host.invocation.InvocationService} and
+ * {@link io.github.cokelee777.agent.host.invocation.DefaultInvocationService}
+ * orchestration.
  */
 @NullMarked
 package io.github.cokelee777.agent.host.invocation;
