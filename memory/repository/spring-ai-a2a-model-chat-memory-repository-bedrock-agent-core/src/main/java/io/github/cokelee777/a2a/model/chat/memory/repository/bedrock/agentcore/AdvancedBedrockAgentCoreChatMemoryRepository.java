@@ -99,9 +99,10 @@ public interface AdvancedBedrockAgentCoreChatMemoryRepository extends ChatMemory
 	 * Lists long-term memory records under the namespace without semantic search.
 	 *
 	 * <p>
-	 * Uses the Bedrock SDK paginator ({@code listMemoryRecordsPaginator}) to automatically
-	 * traverse all pages. The SDK fetches pages of up to 20 items by default, but all
-	 * pages are consumed transparently and the full result set is returned.
+	 * Uses the Bedrock SDK paginator ({@code listMemoryRecordsPaginator}) to
+	 * automatically traverse all pages. The SDK fetches pages of up to 20 items by
+	 * default, but all pages are consumed transparently and the full result set is
+	 * returned.
 	 * @param namespace namespace prefix
 	 * @return summaries, never {@code null}
 	 */
