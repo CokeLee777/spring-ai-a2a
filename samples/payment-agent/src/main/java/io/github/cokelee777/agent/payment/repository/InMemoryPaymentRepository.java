@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,6 +41,11 @@ public class InMemoryPaymentRepository implements PaymentRepository {
 
 	private void put(Payment payment) {
 		paymentStore.put(payment.orderNumber(), payment);
+	}
+
+	@Override
+	public List<Payment> findAll() {
+		return List.copyOf(paymentStore.values());
 	}
 
 	@Override

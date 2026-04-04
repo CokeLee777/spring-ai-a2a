@@ -4,4 +4,5 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.ai:spring-ai-starter-model-bedrock-converse")
 	implementation("org.springframework.ai:spring-ai-client-chat")
+	implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 }

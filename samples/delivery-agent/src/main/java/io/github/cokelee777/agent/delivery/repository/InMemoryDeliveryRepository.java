@@ -5,6 +5,7 @@ import io.github.cokelee777.agent.delivery.domain.Delivery;
 import org.springframework.stereotype.Repository;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,6 +30,11 @@ public class InMemoryDeliveryRepository implements DeliveryRepository {
 
 	private void put(Delivery delivery) {
 		deliveryStore.put(delivery.trackingNumber(), delivery);
+	}
+
+	@Override
+	public List<Delivery> findAll() {
+		return List.copyOf(deliveryStore.values());
 	}
 
 	@Override

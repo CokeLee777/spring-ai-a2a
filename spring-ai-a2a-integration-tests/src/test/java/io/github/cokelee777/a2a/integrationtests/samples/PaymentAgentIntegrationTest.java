@@ -60,7 +60,8 @@ class PaymentAgentIntegrationTest {
 	void agentCard_hasCorrectMetadata() {
 		assertThat(agentCard.name()).isEqualTo("Payment Agent");
 		assertThat(agentCard.description()).isNotBlank();
-		assertThat(agentCard.skills()).hasSize(1);
+		assertThat(agentCard.skills()).hasSize(2);
+		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("list_payments"));
 		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("payment_status"));
 	}
 

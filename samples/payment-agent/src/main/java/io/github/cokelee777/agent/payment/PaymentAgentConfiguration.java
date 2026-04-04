@@ -23,7 +23,11 @@ import java.util.List;
 @Configuration
 public class PaymentAgentConfiguration {
 
-	private static final String SYSTEM_PROMPT = "당신은 결제 조회 전문 에이전트입니다. 주문번호로 결제 및 환불 상태를 확인합니다.";
+	private static final String SYSTEM_PROMPT = """
+			당신은 결제 조회 전문 에이전트입니다.
+			전체 결제 목록 조회 요청에는 별도의 입력 없이 getPaymentList 툴을 즉시 호출하여 전체 목록을 반환합니다.
+			특정 주문번호 조회 요청에는 getPaymentStatus 툴로 해당 결제/환불 상태를 반환합니다.
+			""";
 
 	/**
 	 * Builds the agent card advertising the payment agent's skills.
@@ -33,18 +37,24 @@ public class PaymentAgentConfiguration {
 	@Bean
 	public AgentCard agentCard(@Value("${a2a.agent-url}") String agentUrl) {
 		return new AgentCard.Builder().name("Payment Agent")
-			.description("주문번호로 결제 및 환불 상태를 확인하는 에이전트")
+			.description("전체 결제 목록 조회 및 주문번호로 결제/환불 상태를 확인하는 에이전트")
 			.url(agentUrl)
 			.additionalInterfaces(List.of(new AgentInterface(TransportProtocol.JSONRPC.asString(), agentUrl)))
 			.version("1.0.0")
 			.capabilities(new AgentCapabilities.Builder().streaming(false).pushNotifications(false).build())
 			.defaultInputModes(List.of("text"))
 			.defaultOutputModes(List.of("text"))
-			.skills(List.of(new AgentSkill.Builder().id("payment_status")
-				.name("결제 상태 조회")
-				.description("주문번호로 결제 및 환불 상태를 반환합니다")
-				.tags(List.of("payment", "refund"))
-				.build()))
+			.skills(List.of(
+					new AgentSkill.Builder().id("list_payments")
+						.name("전체 결제 목록 조회")
+						.description("모든 주문의 현재 결제/환불 상태 목록을 반환합니다")
+						.tags(List.of("payment", "list"))
+						.build(),
+					new AgentSkill.Builder().id("payment_status")
+						.name("결제 상태 조회")
+						.description("주문번호로 결제 및 환불 상태를 반환합니다")
+						.tags(List.of("payment", "refund"))
+						.build()))
 			.build();
 	}
 

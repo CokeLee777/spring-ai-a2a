@@ -97,9 +97,9 @@ Agent       Agent     Agent
 | 샘플 | 포트 | 설명 |
 |------|------|------|
 | `host-agent` | 8080 | AgentCore Runtime 진입점 · 오케스트레이터 |
-| `order-agent` | 9001 | 주문 조회 · 취소 가능 여부 확인 (delivery/payment 에이전트 연동) |
-| `delivery-agent` | 9002 | 운송장번호 기반 배송 추적 |
-| `payment-agent` | 9003 | 결제/환불 상태 확인 |
+| `order-agent` | 9001 | 주문 목록 조회 · 취소 가능 여부 확인 (delivery/payment 에이전트 연동); MCP Tools/Resources/Completions 제공 |
+| `delivery-agent` | 9002 | 전체 배송 목록 조회 및 운송장번호 기반 배송 추적; MCP Tools/Resources/Completions 제공 |
+| `payment-agent` | 9003 | 전체 결제 목록 조회 및 결제/환불 상태 확인; MCP Tools/Resources/Completions 제공 |
 
 **host-agent 패키지 구조** (`io.github.cokelee777.agent.host` 기준)
 
@@ -178,7 +178,7 @@ docker buildx build --platform linux/arm64 \
 ## 기술 스택
 
 - **Java 25**, **Spring Boot 3.5.0**
-- **Spring AI 1.1.3** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse
+- **Spring AI 1.1.3** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse, MCP Server (`spring-ai-starter-mcp-server-webmvc`)
 - **A2A Java SDK 0.3.3.Final** — Agent-to-Agent 프로토콜
 - **AWS SDK 2.42.9** — Amazon Bedrock, Bedrock AgentCore
 - **Virtual thread** — A2A 에이전트 실행은 virtual thread 기반 `a2aTaskExecutor`에서 수행

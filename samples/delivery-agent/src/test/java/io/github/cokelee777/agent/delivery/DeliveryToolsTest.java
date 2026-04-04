@@ -45,4 +45,15 @@ class DeliveryToolsTest {
 		assertThat(result).contains("찾을 수 없습니다");
 	}
 
+	@Test
+	void getDeliveryList_returnsFiveRows() {
+		String result = tools.getDeliveryList();
+		assertThat(result).contains("TRACK-1001", "TRACK-1002", "TRACK-1003", "TRACK-2007", "TRACK-2008");
+	}
+
+	@Test
+	void getDeliveryList_containsHeader() {
+		assertThat(tools.getDeliveryList()).startsWith("[배송 목록]");
+	}
+
 }

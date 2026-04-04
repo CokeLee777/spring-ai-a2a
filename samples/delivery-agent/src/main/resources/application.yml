@@ -13,6 +13,11 @@ spring:
     a2a:
       server:
         enabled: true
+    mcp:
+      server:
+        name: delivery-agent
+        version: 1.0.0
+        protocol: STREAMABLE
 
 a2a:
   agent-url: ${AGENT_URL:}

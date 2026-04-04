@@ -59,4 +59,16 @@ class PaymentToolsTest {
 		assertThat(tools.getPaymentStatus("ORD-9999")).contains("찾을 수 없습니다");
 	}
 
+	@Test
+	void getPaymentList_returnsTenRows() {
+		String result = tools.getPaymentList();
+		assertThat(result).contains("ORD-1001", "ORD-1002", "ORD-1003", "ORD-1004", "ORD-1005", "ORD-1006", "ORD-1007",
+				"ORD-1008", "ORD-1009", "ORD-1010");
+	}
+
+	@Test
+	void getPaymentList_containsHeader() {
+		assertThat(tools.getPaymentList()).startsWith("[결제 목록]");
+	}
+
 }

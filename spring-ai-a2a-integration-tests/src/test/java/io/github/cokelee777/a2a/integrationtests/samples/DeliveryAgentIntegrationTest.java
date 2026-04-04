@@ -60,7 +60,8 @@ class DeliveryAgentIntegrationTest {
 	void agentCard_hasCorrectMetadata() {
 		assertThat(agentCard.name()).isEqualTo("Delivery Agent");
 		assertThat(agentCard.description()).isNotBlank();
-		assertThat(agentCard.skills()).hasSize(1);
+		assertThat(agentCard.skills()).hasSize(2);
+		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("list_deliveries"));
 		assertThat(agentCard.skills()).anyMatch(skill -> skill.id().equals("track_delivery"));
 	}
 

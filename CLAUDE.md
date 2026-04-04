@@ -73,15 +73,18 @@ spring-ai-a2a/
 │   │   │   ├── RemoteAgentTools             # @Tool delegateToRemoteAgent / delegateToRemoteAgentsParallel, RemoteAgentCardRegistry 주입
 │   │   │   └── RemoteAgentDelegationRequest # 툴 파라미터 record
 │   │   └── HostAgentApplication             # 부트스트랩
-│   ├── order-agent/  (port: 9001)           # 주문 조회 · 취소 가능 여부 확인 A2A 에이전트 (starter-agent-common + starter-server)
+│   ├── order-agent/  (port: 9001)           # 주문 조회 · 취소 가능 여부 확인 A2A 에이전트 (starter-agent-common + starter-server + spring-ai-starter-mcp-server-webmvc)
 │   │   ├── OrderTools                       # getOrderList, checkOrderCancellability
+│   │   ├── OrderMcpConfiguration            # MCP Tools, Resources (orders://list), Completions 등록
 │   │   ├── DeliveryAgentClient              # delivery-agent 호출 클라이언트 (LazyAgentCard)
 │   │   ├── PaymentAgentClient               # payment-agent 호출 클라이언트 (LazyAgentCard)
 │   │   └── OrderAgentConfiguration          # A2A 서버 빈; 다운스트림 URL은 a2a.remote.agents (autoconfigure)
-│   ├── delivery-agent/ (port: 9002)         # 배송 추적 A2A 에이전트 (starter-agent-common + starter-server)
-│   │   └── DeliveryTools                    # trackDelivery
-│   └── payment-agent/ (port: 9003)          # 결제/환불 상태 확인 A2A 에이전트 (starter-agent-common + starter-server)
-│       └── PaymentTools                     # getPaymentStatus
+│   ├── delivery-agent/ (port: 9002)         # 배송 추적 A2A 에이전트 (starter-agent-common + starter-server + spring-ai-starter-mcp-server-webmvc)
+│   │   ├── DeliveryTools                    # getDeliveryList, trackDelivery
+│   │   └── DeliveryMcpConfiguration         # MCP Tools, Resources (deliveries://list), Completions 등록
+│   └── payment-agent/ (port: 9003)          # 결제/환불 상태 확인 A2A 에이전트 (starter-agent-common + starter-server + spring-ai-starter-mcp-server-webmvc)
+│       ├── PaymentTools                     # getPaymentList, getPaymentStatus
+│       └── PaymentMcpConfiguration          # MCP Tools, Resources (payments://list), Completions 등록
 └── spring-ai-a2a-integration-tests/         # 전체 에이전트 통합 테스트 (jar 미생성)
     ├── HostAgentIntegrationTest
     ├── OrderAgentIntegrationTest
@@ -176,6 +179,17 @@ spring-ai-a2a/
 - `saveAll` — `createEvent` 호출 (append-only, `JdbcChatMemoryRepository`와 동일한 semantics). `DefaultInvocationService`는 새 2개 메시지만 전달.
 - `deleteByConversationId` — `UnsupportedOperationException` (삭제 API 미지원).
 - `findConversationIds` — `UnsupportedOperationException` (목록 API 미지원).
+
+### MCP 서버 (`*McpConfiguration`)
+
+- 세 다운스트림 에이전트(`order-agent`, `delivery-agent`, `payment-agent`) 각각에 `*McpConfiguration` 클래스가 있다.
+- **의존성**: `spring-ai-starter-mcp-server-webmvc` + `application.yml`의 `spring.ai.mcp.server.*` (`STREAMABLE` 프로토콜).
+- **Tools** — `ToolCallbackProvider`(`MethodToolCallbackProvider`) 빈을 통해 `*Tools` 클래스의 `@Tool` 메서드를 MCP Tool로 자동 변환.
+  `*Tools` 클래스에는 MCP 어노테이션을 달지 않는다(A2A 결합 방지).
+- **Resources** — 각 에이전트 도메인 전체 목록을 MCP Resource로 노출. URI 체계: `orders://list`, `deliveries://list`, `payments://list`.
+  핸들러는 포맷 로직을 재사용하기 위해 `tools.getXxxList()`에 위임한다.
+- **Completions** — `McpSchema.ResourceReference(uri)` 로 라우팅. 사전 입력 prefix 기반으로 ID(주문번호·운송장번호) 후보를 반환.
+  `req.argument()`는 optional이므로 null 체크(`(req.argument() != null) ? req.argument().value() : ""`) 필수.
 
 ### auto-configure 활성화 조건
 

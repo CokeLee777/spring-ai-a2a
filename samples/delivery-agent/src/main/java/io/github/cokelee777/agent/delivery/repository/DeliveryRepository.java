@@ -2,12 +2,19 @@ package io.github.cokelee777.agent.delivery.repository;
 
 import io.github.cokelee777.agent.delivery.domain.Delivery;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Read-only access to seeded shipments for the sample delivery agent.
  */
 public interface DeliveryRepository {
+
+	/**
+	 * Returns all seeded shipments in stable insertion order.
+	 * @return every shipment row
+	 */
+	List<Delivery> findAll();
 
 	/**
 	 * Resolves a shipment by tracking reference; accepts bare ids or free text containing

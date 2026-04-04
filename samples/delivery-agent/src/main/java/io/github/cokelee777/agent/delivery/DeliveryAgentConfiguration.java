@@ -23,7 +23,11 @@ import java.util.List;
 @Configuration
 public class DeliveryAgentConfiguration {
 
-	private static final String SYSTEM_PROMPT = "당신은 배송 조회 전문 에이전트입니다. 운송장번호를 기반으로 배송 상태를 추적합니다.";
+	private static final String SYSTEM_PROMPT = """
+			당신은 배송 조회 전문 에이전트입니다.
+			전체 배송 목록 조회 요청에는 별도의 입력 없이 getDeliveryList 툴을 즉시 호출하여 전체 목록을 반환합니다.
+			특정 운송장번호 조회 요청에는 trackDelivery 툴로 해당 배송 상태를 반환합니다.
+			""";
 
 	/**
 	 * Builds the agent card advertising the delivery agent's skills.
@@ -33,18 +37,24 @@ public class DeliveryAgentConfiguration {
 	@Bean
 	public AgentCard agentCard(@Value("${a2a.agent-url}") String agentUrl) {
 		return new AgentCard.Builder().name("Delivery Agent")
-			.description("운송장번호로 배송 상태를 추적하는 에이전트")
+			.description("전체 배송 목록 조회 및 운송장번호로 배송 상태를 추적하는 에이전트")
 			.url(agentUrl)
 			.additionalInterfaces(List.of(new AgentInterface(TransportProtocol.JSONRPC.asString(), agentUrl)))
 			.version("1.0.0")
 			.capabilities(new AgentCapabilities.Builder().streaming(false).pushNotifications(false).build())
 			.defaultInputModes(List.of("text"))
 			.defaultOutputModes(List.of("text"))
-			.skills(List.of(new AgentSkill.Builder().id("track_delivery")
-				.name("배송 조회")
-				.description("운송장번호로 현재 배송 상태를 반환합니다")
-				.tags(List.of("delivery", "tracking"))
-				.build()))
+			.skills(List.of(
+					new AgentSkill.Builder().id("list_deliveries")
+						.name("전체 배송 목록 조회")
+						.description("모든 운송장의 현재 배송 상태 목록을 반환합니다")
+						.tags(List.of("delivery", "list"))
+						.build(),
+					new AgentSkill.Builder().id("track_delivery")
+						.name("배송 조회")
+						.description("운송장번호로 현재 배송 상태를 반환합니다")
+						.tags(List.of("delivery", "tracking"))
+						.build()))
 			.build();
 	}
 
