@@ -1,3 +1,6 @@
+server:
+  port: 9001
+
 spring:
   config:
     activate:
@@ -10,9 +13,6 @@ spring:
             url: http://localhost:9002
           payment-agent:
             url: http://localhost:9003
-
-server:
-  port: 9001
 
 a2a:
   agent-url: http://localhost:9001
