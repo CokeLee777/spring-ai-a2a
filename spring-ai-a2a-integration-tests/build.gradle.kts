@@ -1,13 +1,13 @@
 dependencies {
-    testImplementation(project(":spring-ai-a2a-agent-common"))
-    testImplementation(project(":spring-ai-a2a-autoconfigure-agent-common"))
+    testImplementation(project(":delivery-agent"))
     testImplementation(project(":host-agent"))
     testImplementation(project(":order-agent"))
-    testImplementation(project(":delivery-agent"))
     testImplementation(project(":payment-agent"))
-    testImplementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(project(":spring-ai-a2a-agent-common"))
+    testImplementation(project(":spring-ai-a2a-autoconfigure-agent-common"))
     testImplementation("org.springframework.ai:spring-ai-client-chat")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-web")
 }
 
 tasks.named<Test>("test") {
