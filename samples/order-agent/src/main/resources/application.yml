@@ -13,6 +13,12 @@ spring:
     a2a:
       server:
         enabled: true
+      remote:
+        agents:
+          delivery-agent:
+            url: ${DELIVERY_AGENT_URL:}
+          payment-agent:
+            url: ${PAYMENT_AGENT_URL:}
     mcp:
       server:
         name: order-agent
@@ -21,9 +27,3 @@ spring:
 
 a2a:
   agent-url: ${AGENT_URL:}
-  remote:
-    agents:
-      delivery-agent:
-        url: ${DELIVERY_AGENT_URL:}
-      payment-agent:
-        url: ${PAYMENT_AGENT_URL:}

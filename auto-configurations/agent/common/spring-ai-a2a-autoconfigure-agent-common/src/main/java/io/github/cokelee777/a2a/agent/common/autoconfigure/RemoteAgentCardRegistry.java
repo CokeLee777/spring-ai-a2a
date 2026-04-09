@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 
 /**
  * Registry of {@link LazyAgentCard} instances keyed by logical configuration name (e.g.
- * YAML map keys under {@code a2a.remote.agents}). Construct with
+ * YAML map keys under {@code spring.ai.a2a.remote.agents}). Construct with
  * {@link RemoteAgentProperties}.
  *
  * <p>
  * Thread-safe: uses a {@link ConcurrentHashMap} of lazy cards. Offers lookup by
- * configured agent name under {@code a2a.remote.agents} (see
+ * configured agent name under {@code spring.ai.a2a.remote.agents} (see
  * {@link #findLazyCardByAgentName(String)}), routing by {@link AgentCard#name() agent
  * name} from the card (see {@link #findCardByAgentName(String)}), and newline-separated
  * JSON for orchestrator system prompts (see {@link #getAgentDescriptions()}).
@@ -32,7 +32,8 @@ public class RemoteAgentCardRegistry {
 	/**
 	 * Builds one {@link LazyAgentCard} per entry in
 	 * {@link RemoteAgentProperties#agents()}.
-	 * @param properties bound {@code a2a.remote.agents}; must not be {@code null}
+	 * @param properties bound {@code spring.ai.a2a.remote.agents}; must not be
+	 * {@code null}
 	 */
 	public RemoteAgentCardRegistry(RemoteAgentProperties properties) {
 		Assert.notNull(properties, "properties must not be null");
@@ -42,11 +43,11 @@ public class RemoteAgentCardRegistry {
 
 	/**
 	 * Returns the {@link LazyAgentCard} for an agent name that appears as a key under
-	 * {@code a2a.remote.agents} in configuration (e.g. {@code "payment-agent"}). This is
-	 * not the same as {@link AgentCard#name()} from the agent card; use
-	 * {@link #findCardByAgentName(String)} when resolving the name the model supplies
-	 * from the routable agent metadata.
-	 * @param agentName key under {@code a2a.remote.agents}
+	 * {@code spring.ai.a2a.remote.agents} in configuration (e.g.
+	 * {@code "payment-agent"}). This is not the same as {@link AgentCard#name()} from the
+	 * agent card; use {@link #findCardByAgentName(String)} when resolving the name the
+	 * model supplies from the routable agent metadata.
+	 * @param agentName key under {@code spring.ai.a2a.remote.agents}
 	 * @return the corresponding {@link LazyAgentCard}
 	 * @throws IllegalArgumentException if {@code agentName} is not configured
 	 */
@@ -55,7 +56,7 @@ public class RemoteAgentCardRegistry {
 
 		LazyAgentCard card = lazyCards.get(agentName);
 		if (card == null) {
-			throw new IllegalArgumentException("No entry under a2a.remote.agents for: " + agentName);
+			throw new IllegalArgumentException("No entry under spring.ai.a2a.remote.agents for: " + agentName);
 		}
 		return card;
 	}
@@ -63,8 +64,9 @@ public class RemoteAgentCardRegistry {
 	/**
 	 * Finds the first resolved {@link AgentCard} whose {@link AgentCard#name() agent
 	 * name} equals {@code agentName} (case-sensitive, exact match). This is the routable
-	 * name from {@code /.well-known/agent-card.json}, not the {@code a2a.remote.agents}
-	 * map key used by {@link #findLazyCardByAgentName(String)}.
+	 * name from {@code /.well-known/agent-card.json}, not the
+	 * {@code spring.ai.a2a.remote.agents} map key used by
+	 * {@link #findLazyCardByAgentName(String)}.
 	 *
 	 * <p>
 	 * For each registered {@link LazyAgentCard}, uses {@link LazyAgentCard#peek()} when

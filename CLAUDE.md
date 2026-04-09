@@ -40,7 +40,7 @@ spring-ai-a2a/
 ├── auto-configurations/agent/common/
 │   └── spring-ai-a2a-autoconfigure-agent-common/   # 에이전트 공통 자동 구성
 │       ├── AgentCommonAutoConfiguration     # PingController, RemoteAgentProperties, RemoteAgentCardRegistry
-│       ├── RemoteAgentProperties              # @ConfigurationProperties(prefix=a2a.remote)
+│       ├── RemoteAgentProperties              # @ConfigurationProperties(prefix=spring.ai.a2a.remote)
 │       └── RemoteAgentCardRegistry            # LazyAgentCard 레지스트리
 ├── auto-configurations/server/
 │   └── spring-ai-a2a-autoconfigure-server/          # A2A 서버 인프라 자동 구성
@@ -78,7 +78,7 @@ spring-ai-a2a/
 │   │   ├── OrderMcpConfiguration            # MCP Tools, Resources (orders://list), Completions 등록
 │   │   ├── DeliveryAgentClient              # delivery-agent 호출 클라이언트 (LazyAgentCard)
 │   │   ├── PaymentAgentClient               # payment-agent 호출 클라이언트 (LazyAgentCard)
-│   │   └── OrderAgentConfiguration          # A2A 서버 빈; 다운스트림 URL은 a2a.remote.agents (autoconfigure)
+│   │   └── OrderAgentConfiguration          # A2A 서버 빈; 다운스트림 URL은 spring.ai.a2a.remote.agents (autoconfigure)
 │   ├── delivery-agent/ (port: 9002)         # 배송 추적 A2A 에이전트 (starter-agent-common + starter-server + spring-ai-starter-mcp-server-webmvc)
 │   │   ├── DeliveryTools                    # getDeliveryList, trackDelivery
 │   │   └── DeliveryMcpConfiguration         # MCP Tools, Resources (deliveries://list), Completions 등록
@@ -118,7 +118,7 @@ spring-ai-a2a/
 
 ### RemoteAgentCardRegistry (`spring-ai-a2a-autoconfigure-agent-common`)
 
-- `a2a.remote.agents` YAML 맵 키(예: `order-agent`)마다 하나의 `LazyAgentCard`를 등록한다. (과거 `remote.agents`는 **`a2a.remote.agents`** 로 이전.)
+- `spring.ai.a2a.remote.agents` YAML 맵 키(예: `order-agent`)마다 하나의 `LazyAgentCard`를 등록한다. (과거 `a2a.remote.agents`는 **`spring.ai.a2a.remote.agents`** 로 이전.)
 - `findCardByAgentName` — LLM이 쓰는 라우팅 이름은 `AgentCard#name()`(카드 JSON) 기준. 각 `LazyAgentCard`에 대해 `peek()`가 비어 있으면 해당 항목만 `get()`으로 해소한 뒤 첫 일치를 반환한다.
 - `findLazyCardByAgentName` — 설정 맵의 **키**로 `LazyAgentCard`를 꺼낸다. `order-agent`의 `DeliveryAgentClient` / `PaymentAgentClient`가 사용한다.
 - `getAgentDescriptions` — 오케스트레이터 시스템 프롬프트용 JSON 줄 묶음. 캐시가 하나라도 있으면 `peek()`만 사용하고, 전부 비어 있으면 각 카드에 `get()`을 시도한다(첫 사용자 턴에서도 라우팅 가능한 목록을 주기 위함).
@@ -194,7 +194,7 @@ spring-ai-a2a/
 ### auto-configure 활성화 조건
 
 - `A2AServerAutoConfiguration` — `@ConditionalOnClass(ChatClient.class)` + `@ConditionalOnProperty(spring.ai.a2a.server.enabled, matchIfMissing=true)`. A2A 서버 인프라(컨트롤러, Executor, TaskStore 등) 자동 구성.
-- `AgentCommonAutoConfiguration` — 조건 없이 항상 활성화. `PingController` (`GET /ping`), `@EnableConfigurationProperties(RemoteAgentProperties)` (`a2a.remote.*`), `RemoteAgentCardRegistry` 빈 등록.
+- `AgentCommonAutoConfiguration` — 조건 없이 항상 활성화. `PingController` (`GET /ping`), `@EnableConfigurationProperties(RemoteAgentProperties)` (`spring.ai.a2a.remote.*`), `RemoteAgentCardRegistry` 빈 등록.
 
 ## Docker 빌드
 

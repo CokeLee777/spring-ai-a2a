@@ -11,8 +11,8 @@ import java.util.Map;
  * Configuration properties for remote downstream A2A agents.
  *
  * <p>
- * Bound from the {@code a2a.remote.agents} YAML map. Each key is the logical agent name
- * (e.g. {@code order-agent}) and the value holds the connection details.
+ * Bound from the {@code spring.ai.a2a.remote.agents} YAML map. Each key is the logical
+ * agent name (e.g. {@code order-agent}) and the value holds the connection details.
  * </p>
  *
  * <p>
@@ -20,14 +20,14 @@ import java.util.Map;
  * </p>
  *
  * @param agents map of logical agent name to connection details; defaults to an empty map
- * when {@code a2a.remote.agents} is absent
+ * when {@code spring.ai.a2a.remote.agents} is absent
  */
 @Validated
 @ConfigurationProperties(prefix = RemoteAgentProperties.CONFIG_PREFIX)
 public record RemoteAgentProperties(@DefaultValue @NotNull Map<String, Agent> agents) {
 
 	/** Configuration properties prefix. */
-	public static final String CONFIG_PREFIX = "a2a.remote";
+	public static final String CONFIG_PREFIX = "spring.ai.a2a.remote";
 
 	/**
 	 * Connection details for a single downstream agent.

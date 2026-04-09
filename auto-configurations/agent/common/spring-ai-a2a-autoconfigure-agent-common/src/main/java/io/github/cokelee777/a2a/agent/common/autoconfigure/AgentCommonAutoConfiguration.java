@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
  * Autoconfiguration for spring-ai-a2a-agent-common shared components.
  *
  * <p>
- * Registers {@link RemoteAgentProperties} binding for {@code a2a.remote.*} and
+ * Registers {@link RemoteAgentProperties} binding for {@code spring.ai.a2a.remote.*} and
  * {@link RemoteAgentCardRegistry} when this module is on the classpath.
  * </p>
  */
@@ -17,9 +17,9 @@ import org.springframework.context.annotation.Bean;
 public class AgentCommonAutoConfiguration {
 
 	/**
-	 * Registry of lazy cards for all agents listed under {@code a2a.remote.agents}
-	 * (possibly empty when unset).
-	 * @param properties bound {@code a2a.remote} configuration
+	 * Registry of lazy cards for all agents listed under
+	 * {@code spring.ai.a2a.remote.agents} (possibly empty when unset).
+	 * @param properties bound {@code spring.ai.a2a.remote} configuration
 	 * @return the shared registry
 	 */
 	@Bean

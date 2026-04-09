@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
  * </p>
  *
  * <p>
- * Registered when {@code a2a.remote.agents.payment-agent.url} is set.
+ * Registered when {@code spring.ai.a2a.remote.agents.payment-agent.url} is set.
  * </p>
  */
 @Component
