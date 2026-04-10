@@ -6,12 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for AgentCore Runtime health checks.
- *
- * <p>
- * The AgentCore Runtime polls {@code GET /ping} to verify that the agent is operational
- * before routing traffic to it.
- * </p>
+ * REST controller for health checks.
  */
 @RestController
 public class PingController {
