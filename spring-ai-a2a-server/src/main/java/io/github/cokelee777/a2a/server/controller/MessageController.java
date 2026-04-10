@@ -29,15 +29,7 @@ public class MessageController {
 	private final RequestHandler requestHandler;
 
 	/**
-	 * Handles sendMessage JSON-RPC requests.
-	 *
-	 * <p>
-	 * Per JSON-RPC 2.0 spec, errors are returned as 200 OK with an {@code error} field in
-	 * the response body, not as HTTP error status codes.
-	 *
-	 * <p>
-	 * Streaming ({@code configuration.blocking = false}) is not yet supported. Requests
-	 * with {@code blocking=false} receive a {@code -32601} Method Not Found error.
+	 * Sends a message to the agent and returns the result.
 	 */
 	@PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public SendMessageResponse sendMessage(@RequestBody SendMessageRequest request) {
