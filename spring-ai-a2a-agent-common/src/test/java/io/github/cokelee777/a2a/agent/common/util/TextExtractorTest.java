@@ -19,6 +19,62 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class TextExtractorTest {
 
+	// ── extractTextFromArtifact ──────────────────────────────────────────────
+
+	@Test
+	void extractTextFromArtifact_nullArtifact_returnsEmpty() {
+		String result = TextExtractor.extractTextFromArtifact(null);
+
+		assertThat(result).isEmpty();
+	}
+
+	@Test
+	void extractTextFromArtifact_singleTextPart_returnsText() {
+		Artifact artifact = artifactWithParts(List.of(new TextPart("hello")));
+
+		String result = TextExtractor.extractTextFromArtifact(artifact);
+
+		assertThat(result).isEqualTo("hello");
+	}
+
+	@Test
+	void extractTextFromArtifact_multipleTextParts_concatenatesAll() {
+		Artifact artifact = artifactWithParts(List.of(new TextPart("foo"), new TextPart("bar")));
+
+		String result = TextExtractor.extractTextFromArtifact(artifact);
+
+		assertThat(result).isEqualTo("foobar");
+	}
+
+	@Test
+	void extractTextFromArtifact_nonTextPart_skipped() {
+		Artifact artifact = artifactWithParts(List.of(new DataPart(Map.of("key", "value"))));
+
+		String result = TextExtractor.extractTextFromArtifact(artifact);
+
+		assertThat(result).isEmpty();
+	}
+
+	@Test
+	void extractTextFromArtifact_mixedParts_onlyTextExtracted() {
+		Artifact artifact = artifactWithParts(List.of(new TextPart("text"), new DataPart(Map.of("key", "value"))));
+
+		String result = TextExtractor.extractTextFromArtifact(artifact);
+
+		assertThat(result).isEqualTo("text");
+	}
+
+	@Test
+	void extractTextFromArtifact_whitespaceNotTrimmed() {
+		Artifact artifact = artifactWithParts(List.of(new TextPart("  hello  ")));
+
+		String result = TextExtractor.extractTextFromArtifact(artifact);
+
+		assertThat(result).isEqualTo("  hello  ");
+	}
+
+	// ── extractTextFromTask ───────────────────────────────────────────────────
+
 	@Test
 	void extractTextFromTask_nullArtifacts_returnsEmpty() {
 		Task task = new Task("id", "ctx", new TaskStatus(TaskState.COMPLETED), null, null, null);

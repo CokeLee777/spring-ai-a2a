@@ -1,5 +1,6 @@
 package io.github.cokelee777.a2a.agent.common.util;
 
+import io.a2a.spec.Artifact;
 import io.a2a.spec.Message;
 import io.a2a.spec.Task;
 import io.a2a.spec.TextPart;
@@ -38,6 +39,24 @@ public final class TextExtractor {
 	}
 
 	/**
+	 * Extracts and concatenates text content from all {@link TextPart} parts of the given
+	 * {@link Artifact}.
+	 * @param artifact the A2A artifact whose parts to extract
+	 * @return the concatenated text, or an empty string if the artifact is null or has no
+	 * text parts
+	 */
+	public static String extractTextFromArtifact(Artifact artifact) {
+		if (artifact == null || artifact.parts() == null) {
+			return "";
+		}
+		return artifact.parts()
+			.stream()
+			.filter(part -> part instanceof TextPart)
+			.map(part -> ((TextPart) part).getText())
+			.collect(Collectors.joining());
+	}
+
+	/**
 	 * Concatenates the text of all {@link TextPart} parts across every artifact in the
 	 * given {@link Task}.
 	 * @param task the A2A task whose artifacts to extract
@@ -48,14 +67,7 @@ public final class TextExtractor {
 		if (task == null || task.getArtifacts() == null) {
 			return "";
 		}
-
-		StringBuilder textBuilder = new StringBuilder();
-		task.getArtifacts().forEach(artifact -> artifact.parts().forEach(part -> {
-			if (part instanceof TextPart textPart) {
-				textBuilder.append(textPart.getText());
-			}
-		}));
-		return textBuilder.toString();
+		return task.getArtifacts().stream().map(TextExtractor::extractTextFromArtifact).collect(Collectors.joining());
 	}
 
 }

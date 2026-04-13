@@ -101,15 +101,26 @@
       scrollToBottom();
     }
 
+    /**
+     * Assistant bubble with a dedicated progress row (statusEl) so event:progress
+     * still renders after streaming tokens have started (e.g. while a tool blocks).
+     */
     function addAssistantBubble() {
       const wrapper = document.createElement('div');
       wrapper.className = 'flex justify-start';
       const bubble = document.createElement('div');
       bubble.className = 'max-w-[75%] bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-gray-800 shadow-sm';
+      const statusEl = document.createElement('div');
+      statusEl.className = 'hidden text-gray-400 italic text-xs mb-1';
+      const contentEl = document.createElement('div');
+      contentEl.className = 'whitespace-pre-wrap';
+      contentEl.innerHTML = '<span class="text-gray-400 italic text-xs anim-ellipsis">생각 중</span>';
+      bubble.appendChild(statusEl);
+      bubble.appendChild(contentEl);
       wrapper.appendChild(bubble);
       chatContainer.appendChild(wrapper);
       scrollToBottom();
-      return bubble;
+      return { bubble, statusEl, contentEl };
     }
 
     function escapeHtml(str) {
@@ -121,11 +132,11 @@
       setLoading(true);
       addUserBubble(prompt);
 
-      const bubble = addAssistantBubble();
-      bubble.innerHTML = '<span class="text-gray-400 italic text-xs anim-ellipsis">생각 중</span>';
+      const { bubble, statusEl, contentEl } = addAssistantBubble();
 
       let accumulated = '';
-      let hasTokens = false;
+      /** After a progress SSE event, insert a paragraph break before the next tokens if body text already exists (avoids glued sentences after a tool call). */
+      let needsBlankLineAfterProgress = false;
       let currentEvent = '';
       let currentData = null;
       let buffer = '';
@@ -150,14 +161,20 @@
         // Dispatch a buffered SSE event (called on each blank line)
         function dispatchSseEvent() {
           if (currentEvent === 'progress' && currentData !== null) {
-            if (!hasTokens) {
-              bubble.innerHTML = `<span class="text-gray-400 italic text-xs anim-ellipsis">⚙ ${escapeHtml(currentData.replace(/\.+$/, ''))}</span>`;
-              scrollToBottom();
+            const msg = escapeHtml(currentData.replace(/\.+$/, ''));
+            statusEl.className = 'text-gray-400 italic text-xs mb-1 anim-ellipsis';
+            statusEl.textContent = '⚙ ' + msg;
+            if (accumulated.trim().length > 0) {
+              needsBlankLineAfterProgress = true;
             }
+            scrollToBottom();
           } else if (currentEvent === 'token' && currentData !== null) {
+            if (needsBlankLineAfterProgress) {
+              accumulated += '\n\n';
+              needsBlankLineAfterProgress = false;
+            }
             accumulated += currentData;
-            hasTokens = true;
-            bubble.textContent = accumulated;
+            contentEl.textContent = accumulated;
             scrollToBottom();
           }
           currentEvent = '';
@@ -212,10 +229,12 @@
         }
 
         // Stream complete — render final markdown
+        statusEl.className = 'hidden';
+        statusEl.textContent = '';
         if (accumulated) {
-          bubble.innerHTML = `<div class="prose">${marked.parse(accumulated)}</div>`;
+          contentEl.innerHTML = `<div class="prose">${marked.parse(accumulated)}</div>`;
         } else {
-          bubble.textContent = '응답이 없습니다.';
+          contentEl.textContent = '응답이 없습니다.';
         }
 
       } catch (err) {

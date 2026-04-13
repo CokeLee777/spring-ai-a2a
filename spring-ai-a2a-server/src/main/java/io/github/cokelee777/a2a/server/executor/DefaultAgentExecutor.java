@@ -57,8 +57,6 @@ public class DefaultAgentExecutor implements AgentExecutor {
 			// Call user's method with clean string parameter
 			String response = this.chatClientExecutorHandler.execute(this.chatClient, context);
 
-			log.debug("Response: {}", response);
-
 			response = Objects.requireNonNullElse(response, "");
 
 			updater.addArtifact(List.of(new TextPart(response)), null, null, null);

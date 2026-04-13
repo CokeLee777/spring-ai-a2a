@@ -49,7 +49,7 @@ public class StreamingAgentExecutor implements AgentExecutor {
 				.collect(Collectors.joining())
 				.blockOptional()
 				.orElse("");
-			log.debug("Streaming response accumulated: {} chars", response.length());
+
 			updater.addArtifact(List.of(new TextPart(response)));
 			updater.complete();
 		}
