@@ -81,8 +81,8 @@ class A2AClientServerIntegrationTests {
 		 * Provides a test AgentExecutor bean.
 		 */
 		@Bean
-		public AgentExecutor testAgentExecutor(ChatClient testChatClient) {
-			return new DefaultAgentExecutor(testChatClient, (chatClient, requestContext) -> "test response");
+		public AgentExecutor testAgentExecutor() {
+			return new DefaultAgentExecutor(requestContext -> "test response");
 		}
 
 	}

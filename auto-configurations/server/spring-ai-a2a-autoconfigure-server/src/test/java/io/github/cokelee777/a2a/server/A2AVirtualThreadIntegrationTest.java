@@ -88,8 +88,8 @@ class A2AVirtualThreadIntegrationTest {
 		}
 
 		@Bean
-		public AgentExecutor testAgentExecutor(ChatClient testChatClient, ExecutionCapture capture) {
-			return new DefaultAgentExecutor(testChatClient, (chatClient, requestContext) -> {
+		public AgentExecutor testAgentExecutor(ExecutionCapture capture) {
+			return new DefaultAgentExecutor(requestContext -> {
 				Thread current = Thread.currentThread();
 				capture.isVirtual.set(current.isVirtual());
 				capture.threadName.set(current.getName());

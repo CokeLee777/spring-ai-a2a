@@ -9,8 +9,8 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * This interface is used internally by {@link DefaultAgentExecutor} for executing
  * ChatClient operations in response to A2A protocol requests. Implementations are
- * responsible for obtaining a {@link org.springframework.ai.chat.client.ChatClient}
- * via constructor injection or lambda closure — not as a method parameter.
+ * responsible for obtaining a {@link org.springframework.ai.chat.client.ChatClient} via
+ * constructor injection or lambda closure — not as a method parameter.
  *
  */
 @FunctionalInterface

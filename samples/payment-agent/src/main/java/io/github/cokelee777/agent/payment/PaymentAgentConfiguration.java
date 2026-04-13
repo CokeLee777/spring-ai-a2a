@@ -74,11 +74,11 @@ public class PaymentAgentConfiguration {
 	/** AgentExecutor backed by {@link StreamingAgentExecutor}. */
 	@Bean
 	public AgentExecutor agentExecutor(ChatClient chatClient) {
-		StreamingChatClientExecutorHandler handler = (chat, ctx) -> {
+		StreamingChatClientExecutorHandler handler = ctx -> {
 			String msg = TextExtractor.extractTextFromMessage(ctx.getMessage());
-			return chat.prompt().user(msg).stream().content();
+			return chatClient.prompt().user(msg).stream().content();
 		};
-		return new StreamingAgentExecutor(chatClient, handler);
+		return new StreamingAgentExecutor(handler);
 	}
 
 }
