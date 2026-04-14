@@ -1,9 +1,15 @@
 # order-agent container
 #
-# Build (from project root):
+# Build context must be the repository root (Gradle multi-module).
+#
+# From project root:
 #   docker buildx build --platform linux/amd64 \
 #     -f samples/order-agent/Dockerfile \
 #     -t order-agent:latest --load .
+#
+# From this directory:
+#   docker buildx build --platform linux/amd64 \
+#     -f Dockerfile -t order-agent:latest --load ../..
 #
 # Runtime env:
 #   BEDROCK_REGION, BEDROCK_MODEL_ID,

@@ -7,10 +7,16 @@
 #   - GET /.well-known/agent-card.json → Agent discovery
 #   - GET /ping        → health (200 + JSON)
 #
-# Build (from project root — ARM64 for AgentCore):
+# Build context must be the repository root (Gradle multi-module). The Dockerfile path may be anywhere.
+#
+# From project root (ARM64 for AgentCore):
 #   docker buildx build --platform linux/arm64 \
 #     -f samples/host-agent/Dockerfile \
 #     -t host-agent:arm64 --load .
+#
+# From this directory (same context: repo root via ../..):
+#   docker buildx build --platform linux/arm64 \
+#     -f Dockerfile -t host-agent:arm64 --load ../..
 #
 # Runtime env (set in AgentCore / ECS task definition):
 #   BEDROCK_REGION, BEDROCK_MODEL_ID, ORCHESTRATOR_URL,
