@@ -12,6 +12,8 @@ import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,10 +39,19 @@ class DefaultInvocationServiceTest {
 	private ChatClient chatClient;
 
 	@Mock
+	private ChatClient streamingChatClient;
+
+	@Mock
 	private ChatClient.ChatClientRequestSpec requestSpec;
 
 	@Mock
+	private ChatClient.ChatClientRequestSpec streamRequestSpec;
+
+	@Mock
 	private ChatClient.CallResponseSpec callSpec;
+
+	@Mock
+	private ChatClient.StreamResponseSpec streamResponseSpec;
 
 	@Mock
 	private RemoteAgentCardRegistry remoteAgentCardRegistry;
@@ -105,15 +117,58 @@ class DefaultInvocationServiceTest {
 	}
 
 	@Test
-	void invoke_alwaysReturnsNonNullIds() {
+	void invoke_nullRequest_throwsIllegalArgument() {
+		assertThatThrownBy(() -> service().invoke(null)).isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("request");
+	}
+
+	@Test
+	void invoke_stripsThinkingBlocksFromAssistantReply() {
 		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
-		setupChatClientChain("hi");
+		setupChatClientChain("begin <thinking>secret</thinking> end");
 		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
 
-		InvocationResponse response = service().invoke(new InvocationRequest("hello", null, null));
+		service().invoke(new InvocationRequest("hi", null, "session-1"));
 
-		assertThat(response.conversationId()).isNotNull();
-		assertThat(response.actorId()).isNotNull();
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<List<Message>> captor = ArgumentCaptor.forClass(List.class);
+		verify(chatMemoryRepository).saveAll(eq("session-1"), captor.capture());
+		List<Message> saved = captor.getValue();
+		assertThat(saved).hasSize(2);
+		assertThat(saved.get(0)).isInstanceOf(UserMessage.class);
+		assertThat(saved.get(1)).isInstanceOf(AssistantMessage.class);
+		assertThat(saved.get(1).getText()).isEqualTo("begin end");
+	}
+
+	@Test
+	void invokeStream_persistsHistoryAfterStreamCompletes() {
+		when(chatMemoryRepository.findByConversationId(anyString())).thenReturn(List.of());
+		when(remoteAgentCardRegistry.getAgentDescriptions()).thenReturn("");
+		when(streamingChatClient.prompt()).thenReturn(this.streamRequestSpec);
+		when(this.streamRequestSpec.system(anyString())).thenReturn(this.streamRequestSpec);
+		when(this.streamRequestSpec.tools(any())).thenReturn(this.streamRequestSpec);
+		when(this.streamRequestSpec.messages(anyList())).thenReturn(this.streamRequestSpec);
+		when(this.streamRequestSpec.user(anyString())).thenReturn(this.streamRequestSpec);
+		when(this.streamRequestSpec.stream()).thenReturn(this.streamResponseSpec);
+		when(this.streamResponseSpec.content()).thenReturn(Flux.just("hel", "lo"));
+
+		SseEmitter emitter = new SseEmitter(30_000L);
+		service().invokeStream(new InvocationRequest("hi", null, "stream-session"), emitter);
+
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<List<Message>> captor = ArgumentCaptor.forClass(List.class);
+		verify(this.chatMemoryRepository, timeout(5_000).times(1)).saveAll(eq("stream-session"), captor.capture());
+		List<Message> saved = captor.getValue();
+		assertThat(saved).hasSize(2);
+		assertThat(saved.get(1)).isInstanceOf(AssistantMessage.class);
+		assertThat(saved.get(1).getText()).isEqualTo("hello");
+	}
+
+	@Test
+	void invokeStream_nullRequest_throwsIllegalArgument() {
+		assertThatThrownBy(() -> service().invokeStream(null, new SseEmitter()))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("request");
 	}
 
 	@Test
@@ -134,7 +189,8 @@ class DefaultInvocationServiceTest {
 	}
 
 	private DefaultInvocationService service() {
-		return new DefaultInvocationService(chatClient, chatClient, remoteAgentCardRegistry, chatMemoryRepository);
+		return new DefaultInvocationService(this.chatClient, this.streamingChatClient, this.remoteAgentCardRegistry,
+				this.chatMemoryRepository);
 	}
 
 	private void setupChatClientChain(String content) {
