@@ -2,8 +2,9 @@
 
 ## 프로젝트 개요
 
-Amazon Bedrock AgentCore Runtime + Spring AI + A2A 프로토콜을 활용한 멀티 에이전트 오케스트레이션 샘플.
-AgentCore Runtime이 세션을 관리하며, host-agent(오케스트레이터)가 Spring AI tool-calling으로 다운스트림 A2A 에이전트를 호출한다.
+Spring AI 기반 [A2A(Agent-to-Agent) 프로토콜](https://google.github.io/A2A/) 에이전트를 구현하기 위한 **라이브러리 모음**이다. A2A 서버 인프라(`spring-ai-a2a-server` + autoconfigure), 에이전트 공통 클라이언트(`spring-ai-a2a-agent-common` + autoconfigure), 선택적 Bedrock AgentCore 대화 메모리 구현을 Spring Boot Auto-configuration으로 묶어 제공한다.
+
+`samples/`에는 Amazon Bedrock AgentCore Runtime과 연동되는 **멀티 에이전트 오케스트레이션 예제**가 있다. Runtime이 `host-agent`의 `POST /invocations`를 호출하면, 오케스트레이터가 Spring AI tool-calling(`RemoteAgentTools`)으로 `order-agent`·`delivery-agent`·`payment-agent` 등 다운스트림 A2A 에이전트를 호출한다.
 
 ## 빌드 / 실행 명령어
 
@@ -72,7 +73,7 @@ spring-ai-a2a/
 │   │   │   ├── DefaultInvocationService     # 매 요청 `RemoteAgentTools` 생성·`ChatClient.prompt().tools(...)`, 메모리는 conversationId 및(지원 시) actorId 스코프
 │   │   │   └── InvocationRequest/Response, InvocationService
 │   │   ├── remote/                          # 다운스트림 A2A 연동
-│   │   │   ├── RemoteAgentTools             # @Tool delegateToRemoteAgent / delegateToRemoteAgentsParallel, RemoteAgentCardRegistry 주입
+│   │   │   ├── RemoteAgentTools             # @Tool delegateToRemoteAgent / delegateToRemoteAgentsParallel (InvocationService가 registry로 매 요청 생성)
 │   │   │   └── RemoteAgentDelegationRequest # 툴 파라미터 record
 │   │   └── HostAgentApplication             # 부트스트랩
 │   ├── order-agent/  (port: 9001)           # 주문 조회 · 취소 가능 여부 확인 A2A 에이전트 (starter-agent-common + starter-server + spring-ai-starter-mcp-server-webmvc)
@@ -109,7 +110,7 @@ spring-ai-a2a/
 - 다운스트림 에이전트 서버(샘플)는 `TaskUpdater`로 **`submit` / `startWork` / `addArtifact` / `complete`** 하여 Task를 반환한다. (SDK의 `AgentEmitter` 명칭과 다를 수 있음.)
 - **`send`**: 비스트리밍 JSON-RPC. 클라이언트 소비자는 최종 **`TaskEvent`** 를 받는다. `MessageEvent` 는 이 경로에서 기대하지 않는다. **추가 타임아웃은 두지 않는다**(SDK/HTTP에 따름).
 - **`sendStream`**: `ClientConfig`에 `streaming=true` + 카드 `capabilities.streaming`일 때 SSE. 소비자는 **`TaskUpdateEvent`** (`TaskStatusUpdateEvent`, `TaskArtifactUpdateEvent` 등)를 받고, 내부 `CompletableFuture.get(60, SECONDS)` 로 완료를 기다린다.
-- **host-agent `RemoteAgentTools`**: 단일 위임은 **`A2ATransport.sendStream`** 을 그대로 호출(블로킹). 병렬 위임(`delegateToRemoteAgentsParallel`)만 **`CompletableFuture.supplyAsync(..., virtualThreadExecutor)`** 로 각 호출을 가상 스레드에서 실행한다.
+- **host-agent `RemoteAgentTools`**: 단일 위임은 **`A2ATransport.sendStream`** (블로킹). 병렬 위임(`delegateToRemoteAgentsParallel`)은 **`CompletableFuture.supplyAsync`** 가 각 위임을 `Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("remote-agent-", 1).factory())` 로 만든 전용 Executor에서 실행한다.
 
 ### LazyAgentCard (spring-ai-a2a-agent-common)
 
@@ -220,10 +221,10 @@ docker buildx build --platform linux/arm64 \
 
 ## 의존성 버전 (루트 build.gradle.kts extra)
 
-- `springAiVersion` — 1.1.3
-- `awsSdkVersion` — 2.42.9
-- `a2aVersion` — 0.3.3.Final
-- `gsonVersion` — 2.13.2
+- `springAiVersion` — 1.1.3 (Spring AI BOM)
+- `awsSdkVersion` — 2.42.9 (AWS SDK BOM)
+- `a2aVersion` — 0.3.3.Final (A2A Java SDK 아티팩트 버전)
+- `jspecifyVersion` — 1.0.0 (`org.jspecify:jspecify`, 서브프로젝트 공통)
 
 ## 코드 컨벤션
 

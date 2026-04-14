@@ -1,8 +1,8 @@
 # Spring AI A2A
 
-Spring AI 기반 [A2A(Agent-to-Agent) 프로토콜](https://google.github.io/A2A/) 에이전트를 쉽게 구현할 수 있는 라이브러리입니다.
-A2A 서버 인프라, 에이전트 공통 유틸리티, 대화 메모리 등을 Spring Boot Auto-configuration으로 제공하며,
-`samples/` 디렉토리에 Amazon Bedrock AgentCore Runtime 기반 멀티 에이전트 오케스트레이션 예제가 포함되어 있습니다.
+Spring AI 기반 [A2A(Agent-to-Agent) 프로토콜](https://google.github.io/A2A/) 에이전트를 구현하기 위한 **라이브러리 모음**입니다. A2A 서버 인프라, 에이전트 공통 클라이언트 유틸리티, 선택적 Bedrock AgentCore 대화 메모리를 Spring Boot Auto-configuration으로 제공합니다.
+
+`samples/`에는 Amazon Bedrock AgentCore Runtime과 연동되는 멀티 에이전트 오케스트레이션 예제가 있습니다. Runtime이 `host-agent`의 `POST /invocations`를 호출하면, 오케스트레이터가 Spring AI tool-calling으로 다운스트림 A2A 에이전트(`order-agent` 등)를 호출합니다.
 
 ## 라이브러리 모듈
 
@@ -186,4 +186,5 @@ docker buildx build --platform linux/arm64 \
 - **Spring AI 1.1.3** — ChatClient, Tool Calling (`@Tool` / `@ToolParam`), Bedrock Converse, MCP Server (`spring-ai-starter-mcp-server-webmvc`)
 - **A2A Java SDK 0.3.3.Final** — Agent-to-Agent 프로토콜
 - **AWS SDK 2.42.9** — Amazon Bedrock, Bedrock AgentCore
+- **JSpecify 1.0.0** — nullness 어노테이션 (`org.jspecify:jspecify`, 루트 `build.gradle.kts`의 `jspecifyVersion`)
 - **Virtual thread** — A2A 에이전트 실행은 virtual thread 기반 `a2aTaskExecutor`에서 수행
